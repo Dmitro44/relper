@@ -1,0 +1,16 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:18.1
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: relper
+      POSTGRES_PASSWORD: relper
+      POSTGRES_DB: relper
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
