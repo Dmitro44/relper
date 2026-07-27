@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS places (
 );
 CREATE TABLE IF NOT EXISTS tasks (
     id uuid PRIMARY KEY default gen_random_uuid(),
-    locaiton_id uuid references locations(id),
+    location_id uuid references locations(id),
     user_id uuid references users(id),
     title text not null,
     description text,
@@ -52,12 +52,14 @@ CREATE TABLE IF NOT EXISTS tips (
 CREATE TABLE IF NOT EXISTS tags (
     id uuid PRIMARY KEY default gen_random_uuid(),
     name text unique not null,
-    slug text unique not null
+    slug text unique not null,
+    created_at timestamptz default now()
 );
 CREATE TABLE IF NOT EXISTS places_tags (
     place_id uuid references places(id) on delete cascade,
     tag_id uuid references tags(id) on delete cascade,
     user_id uuid references users(id),
+    created_at timestamptz default now(),
     PRIMARY KEY(place_id, tag_id, user_id)
 );
 CREATE TABLE IF NOT EXISTS comments (
