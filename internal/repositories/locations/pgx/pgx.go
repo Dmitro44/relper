@@ -20,6 +20,12 @@ type Pgx struct {
 	pool *pgxpool.Pool
 }
 
+func NewLocationsRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
+
 func (p *Pgx) Create(ctx context.Context, input locations.CreateInput) (*model.Location, error) {
 	query := `
 insert into locations(country, city, coordinates)

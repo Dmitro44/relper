@@ -3,6 +3,7 @@ package places
 import (
 	"context"
 
+	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/repositories/places/model"
 	"github.com/google/uuid"
 )
@@ -20,7 +21,7 @@ type CreateInput struct {
 	Address     string
 	Phone       string
 	WebsiteURL  string
-	Coordinates model.Coordinates
+	Coordinates coordinates.Coordinates
 	Description string
 	Rating      float32
 	Upvotes     int32
@@ -33,7 +34,7 @@ type UpdateInput struct {
 	Address     *string
 	Phone       *string
 	WebsiteURL  *string
-	Coordinates *model.Coordinates
+	Coordinates *coordinates.Coordinates
 	Description *string
 	Rating      *float32
 	Upvotes     *int32

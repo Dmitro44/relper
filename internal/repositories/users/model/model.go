@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/Dmitro44/relper/internal/entities/user"
 	"github.com/google/uuid"
 )
 
@@ -11,11 +12,6 @@ type User struct {
 	Email     string
 	Nickname  string
 	Habits    []string
-	Contacts  Contacts
+	Contacts  user.Contacts
 	CreatedAt time.Time
-}
-
-type Contacts struct {
-	Telegram string `json:"telegram,omitempty"`
-	Email    string `json:"email,omitempty"`
 }

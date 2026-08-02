@@ -12,13 +12,19 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+
+var _ users.Repository = (*Pgx)(nil)
+
 type Pgx struct {
 	pool *pgxpool.Pool
 }
 
-var sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-var _ users.Repository = (*Pgx)(nil)
+func NewUsersRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
 
 func (p *Pgx) Create(ctx context.Context, input users.CreateInput) (*model.User, error) {
 	createQuery := `

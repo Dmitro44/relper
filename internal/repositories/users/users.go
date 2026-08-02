@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 
+	"github.com/Dmitro44/relper/internal/entities/user"
 	"github.com/Dmitro44/relper/internal/repositories/users/model"
 	"github.com/google/uuid"
 )
@@ -17,12 +18,12 @@ type CreateInput struct {
 	Email    string
 	Nickname string
 	Habits   []string
-	Contacts model.Contacts
+	Contacts user.Contacts
 }
 
 type UpdateInput struct {
 	Email    *string
 	Nickname *string
 	Habits   *[]string
-	Contacts *model.Contacts
+	Contacts *user.Contacts
 }
