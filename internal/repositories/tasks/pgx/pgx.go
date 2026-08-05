@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/task"
 	"github.com/Dmitro44/relper/internal/repositories/tasks"
-	"github.com/Dmitro44/relper/internal/repositories/tasks/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewTasksRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Task, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
 	query := `
 select id, location_id, user_id, title, description, place_id, done, created_at
 from tasks
@@ -38,10 +38,10 @@ where id = $1
 		return nil, err
 	}
 
-	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Task])
+	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[task.Task])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, tasks.ErrNotFound
 		}
 		return nil, err
 	}
@@ -49,7 +49,7 @@ where id = $1
 	return &task, nil
 }
 
-func (p *Pgx) Create(ctx context.Context, input tasks.CreateInput) (*model.Task, error) {
+func (p *Pgx) Create(ctx context.Context, input tasks.CreateInput) (*task.Task, error) {
 	query := `
 insert into tasks(location_id, user_id, title, description, place_id, done)
 values ($1, $2, $3, $4, $5, $6)
@@ -69,10 +69,10 @@ returning id, location_id, user_id, title, description, place_id, done, created_
 		return nil, err
 	}
 
-	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Task])
+	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[task.Task])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, tasks.ErrNotFound
 		}
 		return nil, err
 	}
@@ -80,7 +80,7 @@ returning id, location_id, user_id, title, description, place_id, done, created_
 	return &task, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tasks.UpdateInput) (*model.Task, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tasks.UpdateInput) (*task.Task, error) {
 	updateBuilder := sq.Update("tasks").Where(squirrel.Eq{"id": id})
 
 	if input.LocationID != nil {
@@ -114,7 +114,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tasks.UpdateInput)
 		return nil, err
 	}
 
-	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Task])
+	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[task.Task])
 	if err != nil {
 		return nil, err
 	}

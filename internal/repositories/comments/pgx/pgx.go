@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/comment"
 	"github.com/Dmitro44/relper/internal/repositories/comments"
-	"github.com/Dmitro44/relper/internal/repositories/comments/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewCommentsRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Comment, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*comment.Comment, error) {
 	query := `
 select id, target_type, target_id, user_id, content, created_at
 from comments
@@ -38,10 +38,10 @@ where id = $1
 		return nil, err
 	}
 
-	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Comment])
+	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[comment.Comment])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, comments.ErrNotFound
 		}
 		return nil, err
 	}
@@ -49,7 +49,7 @@ where id = $1
 	return &comment, nil
 }
 
-func (p *Pgx) Create(ctx context.Context, input comments.CreateInput) (*model.Comment, error) {
+func (p *Pgx) Create(ctx context.Context, input comments.CreateInput) (*comment.Comment, error) {
 	query := `
 insert into comments(target_type, target_id, user_id, content)
 values ($1, $2, $3, $4)
@@ -67,10 +67,10 @@ returning id, target_type, target_id, user_id, content, created_at;
 		return nil, err
 	}
 
-	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Comment])
+	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[comment.Comment])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, comments.ErrNotFound
 		}
 		return nil, err
 	}
@@ -78,7 +78,7 @@ returning id, target_type, target_id, user_id, content, created_at;
 	return &comment, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInput) (*model.Comment, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInput) (*comment.Comment, error) {
 	updateBuilder := sq.Update("comments").Where(squirrel.Eq{"id": id})
 
 	if input.TargetType != nil {
@@ -106,7 +106,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInp
 		return nil, err
 	}
 
-	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Comment])
+	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[comment.Comment])
 	if err != nil {
 		return nil, err
 	}

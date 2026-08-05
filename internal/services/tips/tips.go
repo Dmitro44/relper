@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dmitro44/relper/internal/entities/tip"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips"
-	"github.com/Dmitro44/relper/internal/repositories/tips/model"
 	"github.com/google/uuid"
 )
 
@@ -31,29 +30,17 @@ type UpdateInput struct {
 	Upvotes    *int32
 }
 
-func (t *TipService) modelToEntity(m *model.Tip) *tip.Tip {
-	return &tip.Tip{
-		ID:         m.ID,
-		LocationID: m.LocationID,
-		UserID:     m.UserID,
-		Category:   m.Category,
-		Title:      m.Title,
-		Content:    m.Content,
-		Upvotes:    m.Upvotes,
-	}
-}
-
 func (t *TipService) GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
-	tipModel, err := t.repo.GetByID(ctx, id)
+	tipEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.modelToEntity(tipModel), nil
+	return tipEntity, nil
 }
 
 func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, error) {
-	tipModel, err := t.repo.Create(ctx, tipsrepo.CreateInput{
+	tipEntity, err := t.repo.Create(ctx, tipsrepo.CreateInput{
 		LocationID: input.LocationID,
 		UserID:     input.UserID,
 		Category:   input.Category,
@@ -65,11 +52,11 @@ func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, e
 		return nil, err
 	}
 
-	return t.modelToEntity(tipModel), nil
+	return tipEntity, nil
 }
 
 func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*tip.Tip, error) {
-	tipModel, err := t.repo.Update(ctx, id, tipsrepo.UpdateInput{
+	tipEntity, err := t.repo.Update(ctx, id, tipsrepo.UpdateInput{
 		LocationID: input.LocationID,
 		UserID:     input.UserID,
 		Category:   input.Category,
@@ -81,5 +68,5 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 		return nil, err
 	}
 
-	return t.modelToEntity(tipModel), nil
+	return tipEntity, nil
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/place"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places"
-	"github.com/Dmitro44/relper/internal/repositories/places/model"
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/google/uuid"
 )
@@ -49,30 +48,13 @@ type UpdateInput struct {
 	Upvotes     *int32
 }
 
-func (p *PlaceService) modelToEntity(m *model.Place) *place.Place {
-	return &place.Place{
-		ID:          m.ID,
-		LocationID:  m.LocationID,
-		Name:        m.Name,
-		Category:    m.Category,
-		Address:     m.Address,
-		Phone:       m.Phone,
-		WebsiteURL:  m.WebsiteURL,
-		Coordinates: m.Coordinates,
-		Description: m.Description,
-		Rating:      m.Rating,
-		Upvotes:     m.Upvotes,
-		CreatedAt:   m.CreatedAt,
-	}
-}
-
 func (p *PlaceService) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
-	placeModel, err := p.repo.GetByID(ctx, id)
+	placeEntity, err := p.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.modelToEntity(placeModel), nil
+	return placeEntity, nil
 }
 
 func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Place, error) {
@@ -82,7 +64,7 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 		return nil, err
 	}
 
-	placeModel, err := p.repo.Create(ctx, placesrepo.CreateInput{
+	placeEntity, err := p.repo.Create(ctx, placesrepo.CreateInput{
 		LocationID:  input.LocationID,
 		Name:        input.Name,
 		Category:    input.Category,
@@ -98,11 +80,11 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 		return nil, err
 	}
 
-	return p.modelToEntity(placeModel), nil
+	return placeEntity, nil
 }
 
 func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*place.Place, error) {
-	placeModel, err := p.repo.Update(ctx, id, placesrepo.UpdateInput{
+	placeEntity, err := p.repo.Update(ctx, id, placesrepo.UpdateInput{
 		LocationID:  input.LocationID,
 		Name:        input.Name,
 		Category:    input.Category,
@@ -118,5 +100,5 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 		return nil, err
 	}
 
-	return p.modelToEntity(placeModel), nil
+	return placeEntity, nil
 }

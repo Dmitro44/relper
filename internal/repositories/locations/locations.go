@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
-	"github.com/Dmitro44/relper/internal/repositories/locations/model"
+	"github.com/Dmitro44/relper/internal/entities/location"
 	"github.com/google/uuid"
 )
 
 type Repository interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Location, error)
-	Create(ctx context.Context, input CreateInput) (*model.Location, error)
-	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*model.Location, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error)
+	Create(ctx context.Context, input CreateInput) (*location.Location, error)
+	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*location.Location, error)
 }
 
 type CreateInput struct {

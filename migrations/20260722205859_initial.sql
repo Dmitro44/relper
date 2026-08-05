@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS places (
     category text not null,
     address text,
     phone text,
-    website text,
+    website_url text,
     coordinates jsonb,
     description text,
     rating numeric(5,1) default 0,

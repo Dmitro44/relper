@@ -1,4 +1,4 @@
-package model
+package tags
 
 import "fmt"
 

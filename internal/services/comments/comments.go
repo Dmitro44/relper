@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dmitro44/relper/internal/entities/comment"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments"
-	"github.com/Dmitro44/relper/internal/repositories/comments/model"
 	"github.com/google/uuid"
 )
 
@@ -33,24 +32,13 @@ func NewCommmentService(repo commentsrepo.Repository) *CommentService {
 	}
 }
 
-func (c *CommentService) modelToEntity(m *model.Comment) *comment.Comment {
-	return &comment.Comment{
-		ID:         m.ID,
-		TargetType: m.TargetType,
-		TargetID:   m.TargetID,
-		UserID:     m.UserID,
-		Content:    m.Content,
-		CreatedAt:  m.CreatedAt,
-	}
-}
-
 func (c *CommentService) GetByID(ctx context.Context, id uuid.UUID) (*comment.Comment, error) {
-	commentModel, err := c.repo.GetByID(ctx, id)
+	commentEntity, err := c.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.modelToEntity(commentModel), nil
+	return commentEntity, nil
 }
 
 func (c *CommentService) Create(ctx context.Context, input CreateInput) (*comment.Comment, error) {
@@ -61,7 +49,7 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 	// 	_, err := c.repo.
 	// }
 
-	commentModel, err := c.repo.Create(ctx, commentsrepo.CreateInput{
+	commentEntity, err := c.repo.Create(ctx, commentsrepo.CreateInput{
 		TargetType: input.TargetType,
 		TargetID:   input.TargetID,
 		UserID:     input.UserID,
@@ -71,7 +59,7 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 		return nil, err
 	}
 
-	return c.modelToEntity(commentModel), nil
+	return commentEntity, nil
 }
 
 func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*comment.Comment, error) {
@@ -79,7 +67,7 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 	//
 	// another business logic
 
-	commentModel, err := c.repo.Update(ctx, id, commentsrepo.UpdateInput{
+	commentEntity, err := c.repo.Update(ctx, id, commentsrepo.UpdateInput{
 		TargetType: input.TargetType,
 		TargetID:   input.TargetID,
 		UserID:     input.UserID,
@@ -89,5 +77,5 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 		return nil, err
 	}
 
-	return c.modelToEntity(commentModel), nil
+	return commentEntity, nil
 }

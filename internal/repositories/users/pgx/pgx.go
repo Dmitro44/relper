@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/user"
 	"github.com/Dmitro44/relper/internal/repositories/users"
-	"github.com/Dmitro44/relper/internal/repositories/users/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewUsersRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) Create(ctx context.Context, input users.CreateInput) (*model.User, error) {
+func (p *Pgx) Create(ctx context.Context, input users.CreateInput) (*user.User, error) {
 	createQuery := `
 insert into users (email, nickname, habits, contacts)
 values ($1, $2, $3, $4)
@@ -43,10 +43,10 @@ returning id, email, nickname, habits, contacts, created_at;
 		return nil, err
 	}
 
-	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.User])
+	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, users.ErrNotFound
 		}
 		return nil, err
 	}
@@ -54,7 +54,7 @@ returning id, email, nickname, habits, contacts, created_at;
 	return &user, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput) (*model.User, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput) (*user.User, error) {
 	updateBuilder := sq.Update("users").Where(squirrel.Eq{"id": id})
 
 	if input.Email != nil {
@@ -82,7 +82,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 		return nil, err
 	}
 
-	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.User])
+	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 	return &user, nil
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	query := `
 select id, email, nickname, created_at
 from users
@@ -102,10 +102,10 @@ where id = $1
 		return nil, err
 	}
 
-	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.User])
+	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, users.ErrNotFound
 		}
 		return nil, err
 	}

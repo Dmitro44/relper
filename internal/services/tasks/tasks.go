@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dmitro44/relper/internal/entities/task"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks"
-	"github.com/Dmitro44/relper/internal/repositories/tasks/model"
 	"github.com/google/uuid"
 )
 
@@ -31,29 +30,17 @@ type UpdateInput struct {
 	Done        *bool
 }
 
-func (t *TaskService) modelToEntity(m *model.Task) *task.Task {
-	return &task.Task{
-		ID:          m.ID,
-		LocationID:  m.LocationID,
-		UserID:      m.UserID,
-		Title:       m.Title,
-		Description: m.Description,
-		PlaceID:     m.PlaceID,
-		Done:        m.Done,
-	}
-}
-
 func (t *TaskService) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
-	taskModel, err := t.repo.GetByID(ctx, id)
+	taskEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.modelToEntity(taskModel), nil
+	return taskEntity, nil
 }
 
 func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task, error) {
-	taskModel, err := t.repo.Create(ctx, tasksrepo.CreateInput{
+	taskEntity, err := t.repo.Create(ctx, tasksrepo.CreateInput{
 		LocationID:  input.LocationID,
 		UserID:      input.UserID,
 		Title:       input.Title,
@@ -65,11 +52,11 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 		return nil, err
 	}
 
-	return t.modelToEntity(taskModel), nil
+	return taskEntity, nil
 }
 
 func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*task.Task, error) {
-	taskModel, err := t.repo.Update(ctx, id, tasksrepo.UpdateInput{
+	taskEntity, err := t.repo.Update(ctx, id, tasksrepo.UpdateInput{
 		LocationID:  input.LocationID,
 		UserID:      input.UserID,
 		Title:       input.Title,
@@ -81,5 +68,5 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 		return nil, err
 	}
 
-	return t.modelToEntity(taskModel), nil
+	return taskEntity, nil
 }

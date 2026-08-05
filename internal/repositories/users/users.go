@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/Dmitro44/relper/internal/entities/user"
-	"github.com/Dmitro44/relper/internal/repositories/users/model"
 	"github.com/google/uuid"
 )
 
 type Repository interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*model.User, error)
-	Create(ctx context.Context, input CreateInput) (*model.User, error)
-	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*model.User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*user.User, error)
+	Create(ctx context.Context, input CreateInput) (*user.User, error)
+	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*user.User, error)
 }
 
 type CreateInput struct {

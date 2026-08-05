@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/place"
 	"github.com/Dmitro44/relper/internal/repositories/places"
-	"github.com/Dmitro44/relper/internal/repositories/places/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,11 +26,11 @@ func NewPlacesRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) Create(ctx context.Context, input places.CreateInput) (*model.Place, error) {
+func (p *Pgx) Create(ctx context.Context, input places.CreateInput) (*place.Place, error) {
 	query := `
-insert into places(location_id, name, category, address, phone, website, coordinates, description, rating, upvotes)
+insert into places(location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes)
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-returning id, location_id, name, category, address, phone, website, coordinates, description, rating, upvotes, created_at;
+returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at;
 `
 
 	rows, err := p.pool.Query(
@@ -50,10 +50,10 @@ returning id, location_id, name, category, address, phone, website, coordinates,
 		return nil, err
 	}
 
-	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Place])
+	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[place.Place])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, places.ErrNotFound
 		}
 		return nil, err
 	}
@@ -61,7 +61,7 @@ returning id, location_id, name, category, address, phone, website, coordinates,
 	return &place, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput) (*model.Place, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput) (*place.Place, error) {
 	updateBuilder := sq.Update("places").Where(squirrel.Eq{"id": id})
 
 	if input.LocationID != nil {
@@ -80,7 +80,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 		updateBuilder = updateBuilder.Set("phone", input.Phone)
 	}
 	if input.WebsiteURL != nil {
-		updateBuilder = updateBuilder.Set("website", input.WebsiteURL)
+		updateBuilder = updateBuilder.Set("website_url", input.WebsiteURL)
 	}
 	if input.Coordinates != nil {
 		updateBuilder = updateBuilder.Set("coordinates", input.Coordinates)
@@ -94,11 +94,8 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 	if input.Upvotes != nil {
 		updateBuilder = updateBuilder.Set("upvotes", input.Upvotes)
 	}
-	if input.Upvotes != nil {
-		updateBuilder = updateBuilder.Set("upvotes", input.Upvotes)
-	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website, coordinates, description, rating, upvotes, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -110,7 +107,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 		return nil, err
 	}
 
-	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Place])
+	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[place.Place])
 	if err != nil {
 		return nil, err
 	}
@@ -118,9 +115,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 	return &place, nil
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Place, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
 	query := `
-select id, location_id, name, category, address, phone, website, coordinates, description, rating, upvotes, created_at 
+select id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at 
 from places
 where id = $1
 `
@@ -130,10 +127,10 @@ where id = $1
 		return nil, err
 	}
 
-	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Place])
+	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[place.Place])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, places.ErrNotFound
 		}
 		return nil, err
 	}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/location"
 	"github.com/Dmitro44/relper/internal/repositories/locations"
-	"github.com/Dmitro44/relper/internal/repositories/locations/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewLocationsRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) Create(ctx context.Context, input locations.CreateInput) (*model.Location, error) {
+func (p *Pgx) Create(ctx context.Context, input locations.CreateInput) (*location.Location, error) {
 	query := `
 insert into locations(country, city, coordinates)
 values ($1, $2, $3)
@@ -43,10 +43,10 @@ returning id, country, city, coordinates, created_at;
 		return nil, err
 	}
 
-	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Location])
+	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[location.Location])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, locations.ErrNotFound
 		}
 		return nil, err
 	}
@@ -54,7 +54,7 @@ returning id, country, city, coordinates, created_at;
 	return &location, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateInput) (*model.Location, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateInput) (*location.Location, error) {
 	updateBuilder := sq.Update("locations").Where(squirrel.Eq{"id": id})
 
 	if input.Country != nil {
@@ -79,7 +79,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 		return nil, err
 	}
 
-	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Location])
+	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[location.Location])
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 	return &location, nil
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Location, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error) {
 	query := `
 select id, country, city, coordinates
 from locations
@@ -99,10 +99,10 @@ where id = $1
 		return nil, err
 	}
 
-	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Location])
+	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[location.Location])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, locations.ErrNotFound
 		}
 		return nil, err
 	}

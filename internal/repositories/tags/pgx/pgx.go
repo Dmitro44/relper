@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/tag"
 	"github.com/Dmitro44/relper/internal/repositories/tags"
-	"github.com/Dmitro44/relper/internal/repositories/tags/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewTagsRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*tag.Tag, error) {
 	query := `
 select id, name, slug
 from tags
@@ -38,10 +38,10 @@ where id = $1
 		return nil, err
 	}
 
-	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tag])
+	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tag.Tag])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, tags.ErrNotFound
 		}
 		return nil, err
 	}
@@ -49,7 +49,7 @@ where id = $1
 	return &tag, nil
 }
 
-func (p *Pgx) Create(ctx context.Context, input tags.CreateInput) (*model.Tag, error) {
+func (p *Pgx) Create(ctx context.Context, input tags.CreateInput) (*tag.Tag, error) {
 	query := `
 insert into tags(name, slug)
 values ($1, $2)
@@ -65,7 +65,7 @@ returning id, name, slug, created_at;
 		return nil, err
 	}
 
-	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tag])
+	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tag.Tag])
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ returning id, name, slug, created_at;
 	return &tag, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tags.UpdateInput) (*model.Tag, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tags.UpdateInput) (*tag.Tag, error) {
 	updateBuilder := sq.Update("tags").Where(squirrel.Eq{"id": id})
 
 	if input.Name != nil {
@@ -95,7 +95,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tags.UpdateInput) 
 		return nil, err
 	}
 
-	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tag])
+	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tag.Tag])
 	if err != nil {
 		return nil, err
 	}

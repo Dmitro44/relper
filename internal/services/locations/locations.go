@@ -6,7 +6,6 @@ import (
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/location"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations"
-	"github.com/Dmitro44/relper/internal/repositories/locations/model"
 	"github.com/google/uuid"
 )
 
@@ -31,26 +30,17 @@ func NewLocationService(repo locationsrepo.Repository) *LocationService {
 	}
 }
 
-func (l *LocationService) modelToEntity(m *model.Location) *location.Location {
-	return &location.Location{
-		ID:          m.ID,
-		Country:     m.Country,
-		City:        m.City,
-		Coordinates: m.Coordinates,
-	}
-}
-
 func (l *LocationService) GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error) {
-	locationModel, err := l.repo.GetByID(ctx, id)
+	locationEntity, err := l.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return l.modelToEntity(locationModel), nil
+	return locationEntity, nil
 }
 
 func (l *LocationService) Create(ctx context.Context, input CreateInput) (*location.Location, error) {
-	locationModel, err := l.repo.Create(ctx, locationsrepo.CreateInput{
+	locationEntity, err := l.repo.Create(ctx, locationsrepo.CreateInput{
 		Country:     input.Country,
 		City:        input.City,
 		Coordinates: input.Coordinates,
@@ -59,11 +49,11 @@ func (l *LocationService) Create(ctx context.Context, input CreateInput) (*locat
 		return nil, err
 	}
 
-	return l.modelToEntity(locationModel), nil
+	return locationEntity, nil
 }
 
 func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*location.Location, error) {
-	locationModel, err := l.repo.Update(ctx, id, locationsrepo.UpdateInput{
+	locationEntity, err := l.repo.Update(ctx, id, locationsrepo.UpdateInput{
 		Country:     input.Country,
 		City:        input.City,
 		Coordinates: input.Coordinates,
@@ -72,5 +62,5 @@ func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input Update
 		return nil, err
 	}
 
-	return l.modelToEntity(locationModel), nil
+	return locationEntity, nil
 }

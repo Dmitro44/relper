@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Dmitro44/relper/internal/entities/tip"
 	"github.com/Dmitro44/relper/internal/repositories/tips"
-	"github.com/Dmitro44/relper/internal/repositories/tips/model"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewTipsRepo(pool *pgxpool.Pool) *Pgx {
 	}
 }
 
-func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Tip, error) {
+func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
 	query := `
 select id, location_id, user_id, category, title, content, upvotes, created_at
 from tips
@@ -38,10 +38,10 @@ where id = $1
 		return nil, err
 	}
 
-	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tip])
+	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, tips.ErrNotFound
 		}
 		return nil, err
 	}
@@ -49,7 +49,7 @@ where id = $1
 	return &tip, nil
 }
 
-func (p *Pgx) Create(ctx context.Context, input tips.CreateInput) (*model.Tip, error) {
+func (p *Pgx) Create(ctx context.Context, input tips.CreateInput) (*tip.Tip, error) {
 	query := `
 insert into tips(location_id, user_id, category, title, content, upvotes)
 values ($1, $2, $3, $4, $5, $6)
@@ -69,10 +69,10 @@ returning id, location_id, user_id, category, title, content, upvotes, created_a
 		return nil, err
 	}
 
-	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tip])
+	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, model.ErrNotFound
+			return nil, tips.ErrNotFound
 		}
 		return nil, err
 	}
@@ -80,7 +80,7 @@ returning id, location_id, user_id, category, title, content, upvotes, created_a
 	return &tip, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) (*model.Tip, error) {
+func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) (*tip.Tip, error) {
 	updateBuilder := sq.Update("tips").Where(squirrel.Eq{"id": id})
 
 	if input.LocationID != nil {
@@ -114,7 +114,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) 
 		return nil, err
 	}
 
-	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.Tip])
+	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
 	if err != nil {
 		return nil, err
 	}

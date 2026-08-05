@@ -5,7 +5,6 @@ import (
 
 	userentity "github.com/Dmitro44/relper/internal/entities/user"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users"
-	"github.com/Dmitro44/relper/internal/repositories/users/model"
 	"github.com/google/uuid"
 )
 
@@ -19,23 +18,13 @@ func NewUserService(repo usersrepo.Repository) *UserService {
 	}
 }
 
-func (u *UserService) modelToEntity(m *model.User) *userentity.User {
-	return &userentity.User{
-		ID:       m.ID,
-		Email:    m.Email,
-		Nickname: m.Nickname,
-		Habits:   m.Habits,
-		Contacts: userentity.Contacts(m.Contacts),
-	}
-}
-
 func (u *UserService) GetByID(ctx context.Context, id uuid.UUID) (*userentity.User, error) {
-	userModel, err := u.repo.GetByID(ctx, id)
+	userEntity, err := u.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.modelToEntity(userModel), nil
+	return userEntity, nil
 }
 
 type CreateInput struct {
@@ -53,7 +42,7 @@ type UpdateInput struct {
 }
 
 func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentity.User, error) {
-	userModel, err := u.repo.Create(ctx, usersrepo.CreateInput{
+	userEntity, err := u.repo.Create(ctx, usersrepo.CreateInput{
 		Email:    input.Email,
 		Nickname: input.Nickname,
 		Habits:   input.Habits,
@@ -63,11 +52,11 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 		return nil, err
 	}
 
-	return u.modelToEntity(userModel), nil
+	return userEntity, nil
 }
 
 func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*userentity.User, error) {
-	userModel, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{
+	userEntity, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{
 		Email:    input.Email,
 		Nickname: input.Nickname,
 		Habits:   input.Habits,
@@ -77,5 +66,5 @@ func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 		return nil, err
 	}
 
-	return u.modelToEntity(userModel), nil
+	return userEntity, nil
 }
