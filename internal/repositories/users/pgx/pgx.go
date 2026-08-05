@@ -70,7 +70,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 		updateBuilder = updateBuilder.Set("contacts", input.Contacts)
 	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, email, nickname, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, email, nickname, habits, contacts, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -92,7 +92,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	query := `
-select id, email, nickname, created_at
+select id, email, nickname, habits, contacts, created_at
 from users
 where id = $1
 `
