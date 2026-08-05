@@ -20,6 +20,12 @@ type Pgx struct {
 	pool *pgxpool.Pool
 }
 
+func NewCommentsRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
+
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Comment, error) {
 	query := `
 select id, target_type, target_id, user_id, content, created_at

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS tips (
     id uuid PRIMARY KEY default gen_random_uuid(),
     location_id uuid references locations(id),
-    users_id uuid references users(id),
+    user_id uuid references users(id),
     category text not null,
     title text not null,
     content text not null,

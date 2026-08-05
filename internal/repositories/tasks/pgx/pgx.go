@@ -20,6 +20,12 @@ type Pgx struct {
 	pool *pgxpool.Pool
 }
 
+func NewTasksRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
+
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Task, error) {
 	query := `
 select id, location_id, user_id, title, description, place_id, done, created_at

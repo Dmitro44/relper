@@ -20,6 +20,12 @@ type Pgx struct {
 	pool *pgxpool.Pool
 }
 
+func NewTipsRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
+
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Tip, error) {
 	query := `
 select id, location_id, user_id, category, title, content, upvotes, created_at

@@ -1,0 +1,122 @@
+package places
+
+import (
+	"context"
+
+	"github.com/Dmitro44/relper/internal/entities/coordinates"
+	"github.com/Dmitro44/relper/internal/entities/place"
+	placesrepo "github.com/Dmitro44/relper/internal/repositories/places"
+	"github.com/Dmitro44/relper/internal/repositories/places/model"
+	"github.com/Dmitro44/relper/internal/services/locations"
+	"github.com/google/uuid"
+)
+
+type PlaceService struct {
+	repo            placesrepo.Repository
+	locationservice locations.LocationService
+}
+
+func NewPlaceService(repo placesrepo.Repository, locationservice locations.LocationService) *PlaceService {
+	return &PlaceService{
+		repo:            repo,
+		locationservice: locationservice,
+	}
+}
+
+type CreateInput struct {
+	LocationID  uuid.UUID
+	Name        string
+	Category    string
+	Address     string
+	Phone       string
+	WebsiteURL  string
+	Coordinates coordinates.Coordinates
+	Description string
+	Rating      float32
+	Upvotes     int32
+}
+
+type UpdateInput struct {
+	LocationID  *uuid.UUID
+	Name        *string
+	Category    *string
+	Address     *string
+	Phone       *string
+	WebsiteURL  *string
+	Coordinates *coordinates.Coordinates
+	Description *string
+	Rating      *float32
+	Upvotes     *int32
+}
+
+func (p *PlaceService) modelToEntity(m *model.Place) *place.Place {
+	return &place.Place{
+		ID:          m.ID,
+		LocationID:  m.LocationID,
+		Name:        m.Name,
+		Category:    m.Category,
+		Address:     m.Address,
+		Phone:       m.Phone,
+		WebsiteURL:  m.WebsiteURL,
+		Coordinates: m.Coordinates,
+		Description: m.Description,
+		Rating:      m.Rating,
+		Upvotes:     m.Upvotes,
+		CreatedAt:   m.CreatedAt,
+	}
+}
+
+func (p *PlaceService) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
+	placeModel, err := p.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.modelToEntity(placeModel), nil
+}
+
+func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Place, error) {
+	// check if location id exists
+	_, err := p.locationservice.GetByID(ctx, input.LocationID)
+	if err != nil {
+		return nil, err
+	}
+
+	placeModel, err := p.repo.Create(ctx, placesrepo.CreateInput{
+		LocationID:  input.LocationID,
+		Name:        input.Name,
+		Category:    input.Category,
+		Address:     input.Address,
+		Phone:       input.Phone,
+		WebsiteURL:  input.WebsiteURL,
+		Coordinates: input.Coordinates,
+		Description: input.Description,
+		Rating:      input.Rating,
+		Upvotes:     input.Upvotes,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return p.modelToEntity(placeModel), nil
+}
+
+func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*place.Place, error) {
+	placeModel, err := p.repo.Update(ctx, id, placesrepo.UpdateInput{
+		LocationID:  input.LocationID,
+		Name:        input.Name,
+		Category:    input.Category,
+		Address:     input.Address,
+		Phone:       input.Phone,
+		WebsiteURL:  input.WebsiteURL,
+		Coordinates: input.Coordinates,
+		Description: input.Description,
+		Rating:      input.Rating,
+		Upvotes:     input.Upvotes,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return p.modelToEntity(placeModel), nil
+}

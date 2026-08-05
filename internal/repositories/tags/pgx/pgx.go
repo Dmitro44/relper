@@ -20,6 +20,12 @@ type Pgx struct {
 	pool *pgxpool.Pool
 }
 
+func NewTagsRepo(pool *pgxpool.Pool) *Pgx {
+	return &Pgx{
+		pool: pool,
+	}
+}
+
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, error) {
 	query := `
 select id, name, slug
