@@ -113,3 +113,21 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInp
 
 	return &comment, nil
 }
+
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from comments
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return comments.ErrNotFound
+	}
+
+	return nil
+}

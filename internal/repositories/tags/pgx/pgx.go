@@ -103,6 +103,24 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tags.UpdateInput) 
 	return &tag, nil
 }
 
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from tags
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return tags.ErrNotFound
+	}
+
+	return nil
+}
+
 func (p *Pgx) AddToPlace(ctx context.Context, placeID, tagID, userID uuid.UUID) error {
 	query := `
 insert into places_tags(place_id, tag_id, user_id)

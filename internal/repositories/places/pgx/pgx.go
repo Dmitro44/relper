@@ -137,3 +137,21 @@ where id = $1
 
 	return &place, nil
 }
+
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from places
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return places.ErrNotFound
+	}
+
+	return nil
+}

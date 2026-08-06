@@ -60,3 +60,12 @@ func (t *TagService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 
 	return tagEntity, nil
 }
+
+func (t *TagService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := t.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

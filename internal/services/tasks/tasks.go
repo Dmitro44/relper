@@ -30,6 +30,12 @@ type UpdateInput struct {
 	Done        *bool
 }
 
+func NewTaskService(repo tasksrepo.Repository) *TaskService {
+	return &TaskService{
+		repo: repo,
+	}
+}
+
 func (t *TaskService) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
 	taskEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
@@ -69,4 +75,13 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 	}
 
 	return taskEntity, nil
+}
+
+func (t *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := t.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

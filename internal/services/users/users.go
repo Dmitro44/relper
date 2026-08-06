@@ -1,4 +1,4 @@
-package userservice
+package users
 
 import (
 	"context"
@@ -67,4 +67,13 @@ func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 	}
 
 	return userEntity, nil
+}
+
+func (u *UserService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := u.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

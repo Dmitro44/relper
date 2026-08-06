@@ -109,3 +109,21 @@ where id = $1
 
 	return &location, nil
 }
+
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from locations
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return locations.ErrNotFound
+	}
+
+	return nil
+}

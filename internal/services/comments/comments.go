@@ -79,3 +79,12 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 
 	return commentEntity, nil
 }
+
+func (c *CommentService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := c.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

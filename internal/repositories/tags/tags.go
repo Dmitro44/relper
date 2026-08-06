@@ -11,6 +11,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*tag.Tag, error)
 	Create(ctx context.Context, input CreateInput) (*tag.Tag, error)
 	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*tag.Tag, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 	AddToPlace(ctx context.Context, placeID, tagID, userID uuid.UUID) error
 	RemoveFromPlace(ctx context.Context, placeID, tagID uuid.UUID) error
 }

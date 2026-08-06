@@ -102,3 +102,12 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 
 	return placeEntity, nil
 }
+
+func (p *PlaceService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := p.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

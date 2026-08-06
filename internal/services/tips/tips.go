@@ -30,6 +30,12 @@ type UpdateInput struct {
 	Upvotes    *int32
 }
 
+func NewTipService(repo tipsrepo.Repository) *TipService {
+	return &TipService{
+		repo: repo,
+	}
+}
+
 func (t *TipService) GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
 	tipEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
@@ -69,4 +75,13 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 	}
 
 	return tipEntity, nil
+}
+
+func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := t.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -11,6 +11,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*user.User, error)
 	Create(ctx context.Context, input CreateInput) (*user.User, error)
 	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*user.User, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type CreateInput struct {

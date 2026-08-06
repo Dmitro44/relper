@@ -64,3 +64,12 @@ func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input Update
 
 	return locationEntity, nil
 }
+
+func (l *LocationService) Delete(ctx context.Context, id uuid.UUID) error {
+	err := l.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

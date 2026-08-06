@@ -121,3 +121,21 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tasks.UpdateInput)
 
 	return &task, nil
 }
+
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from tasks
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return tasks.ErrNotFound
+	}
+
+	return nil
+}

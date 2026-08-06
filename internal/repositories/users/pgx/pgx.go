@@ -112,3 +112,21 @@ where id = $1
 
 	return &user, nil
 }
+
+func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+delete from users
+where id = $1
+`
+
+	tag, err := p.pool.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return users.ErrNotFound
+	}
+
+	return nil
+}
