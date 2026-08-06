@@ -15,8 +15,8 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	var config *Config
-	err = env.Parse(&config)
+	config := &Config{}
+	err = env.Parse(config)
 	if err != nil {
 		return nil, err
 	}

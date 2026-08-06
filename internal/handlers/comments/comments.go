@@ -1,0 +1,87 @@
+package comments
+
+import (
+	"context"
+	"net/http"
+
+	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
+	"github.com/danielgtaylor/huma/v2"
+)
+
+type CommentHandler struct {
+	svc *commentsvc.CommentService
+}
+
+func NewCommentHandler(svc *commentsvc.CommentService) *CommentHandler {
+	return &CommentHandler{
+		svc: svc,
+	}
+}
+
+func (h *CommentHandler) Register(api huma.API) {
+	grp := huma.NewGroup(api)
+	grp.UseSimpleModifier(func(op *huma.Operation) {
+		op.Tags = []string{"Comments"}
+	})
+
+	huma.Get(grp, "/comments/{id}", h.HandleGetByID)
+	huma.Patch(grp, "/comments/{id}", h.HandleUpdate)
+	huma.Delete(grp, "/comments/{id}", h.HandleDelete)
+
+	huma.Register(grp, huma.Operation{
+		OperationID:   "create-comment",
+		Method:        http.MethodPost,
+		Path:          "/comments",
+		Summary:       "Create a comment",
+		DefaultStatus: 201,
+	}, h.HandleCreate)
+}
+
+func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentRequest) (*CommentResponse, error) {
+	u, err := h.svc.GetByID(ctx, in.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CommentResponse{Body: u}, nil
+}
+
+func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequest) (*CommentResponse, error) {
+	createInput := commentsvc.CreateInput{
+		TargetType: in.Body.TargetType,
+		TargetID:   in.Body.TargetID,
+		UserID:     in.Body.UserID,
+		Content:    in.Body.Content,
+	}
+	u, err := h.svc.Create(ctx, createInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CommentResponse{Body: u}, nil
+}
+
+func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequest) (*CommentResponse, error) {
+	updateInput := commentsvc.UpdateInput{
+		TargetType: in.Body.TargetType,
+		TargetID:   in.Body.TargetID,
+		UserID:     in.Body.UserID,
+		Content:    in.Body.Content,
+	}
+
+	u, err := h.svc.Update(ctx, in.ID, updateInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CommentResponse{Body: u}, nil
+}
+
+func (h *CommentHandler) HandleDelete(ctx context.Context, in *DeleteCommentRequest) (*struct{}, error) {
+	err := h.svc.Delete(ctx, in.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
