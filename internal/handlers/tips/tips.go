@@ -27,6 +27,17 @@ func (h *TipHandler) Register(api huma.API) {
 	huma.Get(grp, "/tips/{id}", h.HandleGetByID)
 	huma.Patch(grp, "/tips/{id}", h.HandleUpdate)
 	huma.Delete(grp, "/tips/{id}", h.HandleDelete)
+	huma.Post(grp, "/tips/{id}/upvote", h.HandleUpvote, func(o *huma.Operation) {
+		o.Summary = "Add an upvote"
+	})
+
+	huma.Register(grp, huma.Operation{
+		OperationID:   "remove-tip-upvote",
+		Method:        http.MethodDelete,
+		Path:          "/tips/{id}/upvote",
+		Summary:       "Remove upvote",
+		DefaultStatus: 200,
+	}, h.HandleRemoveUpvote)
 
 	huma.Register(grp, huma.Operation{
 		OperationID:   "create-tip",
@@ -85,4 +96,22 @@ func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*s
 	}
 
 	return nil, nil
+}
+
+func (h *TipHandler) HandleUpvote(ctx context.Context, in *UpvoteTipRequest) (*TipResponse, error) {
+	t, err := h.svc.Upvote(ctx, in.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TipResponse{Body: t}, nil
+}
+
+func (h *TipHandler) HandleRemoveUpvote(ctx context.Context, in *RemoveUpvoteTipRequest) (*TipResponse, error) {
+	t, err := h.svc.RemoveUpvote(ctx, in.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TipResponse{Body: t}, nil
 }

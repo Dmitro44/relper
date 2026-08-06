@@ -139,3 +139,51 @@ where id = $1
 
 	return nil
 }
+
+func (p *Pgx) Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
+	query := `
+update tips
+set upvotes = upvotes + 1
+where id = $1
+returning id, location_id, user_id, category, title, content, upvotes, created_at;
+`
+
+	rows, err := p.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tips.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &tip, nil
+}
+
+func (p *Pgx) RemoveUpvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
+	query := `
+update tips
+set upvotes = GREATEST(upvotes - 1, 0)
+where id = $1
+returning id, location_id, user_id, category, title, content, upvotes, created_at;
+`
+
+	rows, err := p.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tips.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &tip, nil
+}

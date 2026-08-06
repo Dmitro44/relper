@@ -85,3 +85,21 @@ func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+func (t *TipService) Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
+	updTip, err := t.repo.Upvote(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return updTip, nil
+}
+
+func (t *TipService) RemoveUpvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
+	updTip, err := t.repo.RemoveUpvote(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return updTip, nil
+}

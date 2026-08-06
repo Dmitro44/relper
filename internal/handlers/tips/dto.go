@@ -36,6 +36,14 @@ type DeleteTipRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type UpvoteTipRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type RemoveUpvoteTipRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
 type TipResponse struct {
 	Body *tip.Tip
 }
