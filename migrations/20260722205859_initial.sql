@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS places (
     coordinates jsonb,
     description text,
     rating numeric(5,1) default 0,
-    upvotes int default 0,
     created_at timestamptz default now()
 );
 CREATE TABLE IF NOT EXISTS tasks (

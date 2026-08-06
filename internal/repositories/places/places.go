@@ -25,7 +25,6 @@ type CreateInput struct {
 	Coordinates coordinates.Coordinates
 	Description string
 	Rating      float32
-	Upvotes     int32
 }
 
 type UpdateInput struct {
@@ -38,5 +37,4 @@ type UpdateInput struct {
 	Coordinates *coordinates.Coordinates
 	Description *string
 	Rating      *float32
-	Upvotes     *int32
 }

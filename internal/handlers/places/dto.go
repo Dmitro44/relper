@@ -17,7 +17,6 @@ type CreatePlaceRequest struct {
 		Coordinates dto.CoordinatesInput `json:"coordinates"`
 		Description string               `json:"description,omitempty"`
 		Rating      float32              `json:"rating,omitempty" minimum:"0" maximum:"5"`
-		Upvotes     int32                `json:"upvotes,omitempty" minimum:"0"`
 	}
 }
 
@@ -33,7 +32,6 @@ type UpdatePlaceRequest struct {
 		Coordinates *dto.CoordinatesInput `json:"coordinates,omitempty"`
 		Description *string               `json:"description,omitempty"`
 		Rating      *float32              `json:"rating,omitempty" minimum:"0" maximum:"5"`
-		Upvotes     *int32                `json:"upvotes,omitempty" minimum:"0"`
 	}
 }
 

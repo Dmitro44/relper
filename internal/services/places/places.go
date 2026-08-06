@@ -32,7 +32,6 @@ type CreateInput struct {
 	Coordinates coordinates.Coordinates
 	Description string
 	Rating      float32
-	Upvotes     int32
 }
 
 type UpdateInput struct {
@@ -45,7 +44,6 @@ type UpdateInput struct {
 	Coordinates *coordinates.Coordinates
 	Description *string
 	Rating      *float32
-	Upvotes     *int32
 }
 
 func (p *PlaceService) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
@@ -74,7 +72,6 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 		Coordinates: input.Coordinates,
 		Description: input.Description,
 		Rating:      input.Rating,
-		Upvotes:     input.Upvotes,
 	})
 	if err != nil {
 		return nil, err
@@ -94,7 +91,6 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 		Coordinates: input.Coordinates,
 		Description: input.Description,
 		Rating:      input.Rating,
-		Upvotes:     input.Upvotes,
 	})
 	if err != nil {
 		return nil, err

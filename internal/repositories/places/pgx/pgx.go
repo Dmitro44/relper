@@ -28,9 +28,9 @@ func NewPlacesRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) Create(ctx context.Context, input places.CreateInput) (*place.Place, error) {
 	query := `
-insert into places(location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at;
+insert into places(location_id, name, category, address, phone, website_url, coordinates, description, rating)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at;
 `
 
 	rows, err := p.pool.Query(
@@ -44,7 +44,6 @@ returning id, location_id, name, category, address, phone, website_url, coordina
 		input.Coordinates,
 		input.Description,
 		input.Rating,
-		input.Upvotes,
 	)
 	if err != nil {
 		return nil, err
@@ -91,11 +90,8 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 	if input.Rating != nil {
 		updateBuilder = updateBuilder.Set("rating", input.Rating)
 	}
-	if input.Upvotes != nil {
-		updateBuilder = updateBuilder.Set("upvotes", input.Upvotes)
-	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -117,7 +113,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
 	query := `
-select id, location_id, name, category, address, phone, website_url, coordinates, description, rating, upvotes, created_at 
+select id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at 
 from places
 where id = $1
 `

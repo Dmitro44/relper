@@ -18,6 +18,5 @@ type Place struct {
 	Coordinates coordinates.Coordinates
 	Description string
 	Rating      float32
-	Upvotes     int32
 	CreatedAt   time.Time
 }

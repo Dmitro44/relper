@@ -61,7 +61,6 @@ func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest)
 		},
 		Description: in.Body.Description,
 		Rating:      in.Body.Rating,
-		Upvotes:     in.Body.Upvotes,
 	}
 	p, err := h.svc.Create(ctx, createInput)
 	if err != nil {
@@ -81,7 +80,6 @@ func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest)
 		WebsiteURL:  in.Body.WebsiteURL,
 		Description: in.Body.Description,
 		Rating:      in.Body.Rating,
-		Upvotes:     in.Body.Upvotes,
 	}
 	if in.Body.Coordinates != nil {
 		updateInput.Coordinates = &coordinates.Coordinates{
