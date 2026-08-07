@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -51,7 +52,7 @@ func (h *TipHandler) Register(api huma.API) {
 func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*TipResponse, error) {
 	t, err := h.svc.GetByID(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TipResponse{Body: t}, nil
@@ -67,7 +68,7 @@ func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*T
 		Upvotes:    in.Body.Upvotes,
 	})
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TipResponse{Body: t}, nil
@@ -83,7 +84,7 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 		Upvotes:    in.Body.Upvotes,
 	})
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TipResponse{Body: t}, nil
@@ -92,7 +93,7 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*struct{}, error) {
 	err := h.svc.Delete(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return nil, nil
@@ -101,7 +102,7 @@ func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*s
 func (h *TipHandler) HandleUpvote(ctx context.Context, in *UpvoteTipRequest) (*TipResponse, error) {
 	t, err := h.svc.Upvote(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TipResponse{Body: t}, nil
@@ -110,7 +111,7 @@ func (h *TipHandler) HandleUpvote(ctx context.Context, in *UpvoteTipRequest) (*T
 func (h *TipHandler) HandleRemoveUpvote(ctx context.Context, in *RemoveUpvoteTipRequest) (*TipResponse, error) {
 	t, err := h.svc.RemoveUpvote(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TipResponse{Body: t}, nil

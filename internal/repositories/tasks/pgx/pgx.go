@@ -71,9 +71,6 @@ returning id, location_id, user_id, title, description, place_id, done, created_
 
 	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[task.Task])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, tasks.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -116,6 +113,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tasks.UpdateInput)
 
 	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[task.Task])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tasks.ErrNotFound
+		}
 		return nil, err
 	}
 

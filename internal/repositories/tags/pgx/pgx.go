@@ -97,6 +97,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tags.UpdateInput) 
 
 	tag, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tag.Tag])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tags.ErrNotFound
+		}
 		return nil, err
 	}
 

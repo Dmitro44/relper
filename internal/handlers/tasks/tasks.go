@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tasksvc "github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -40,7 +41,7 @@ func (h *TaskHandler) Register(api huma.API) {
 func (h *TaskHandler) HandleGetByID(ctx context.Context, in *GetTaskRequest) (*TaskResponse, error) {
 	t, err := h.svc.GetByID(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TaskResponse{Body: t}, nil
@@ -56,7 +57,7 @@ func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (
 		Done:        in.Body.Done,
 	})
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TaskResponse{Body: t}, nil
@@ -72,7 +73,7 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 		Done:        in.Body.Done,
 	})
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &TaskResponse{Body: t}, nil
@@ -81,7 +82,7 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 func (h *TaskHandler) HandleDelete(ctx context.Context, in *DeleteTaskRequest) (*struct{}, error) {
 	err := h.svc.Delete(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return nil, nil

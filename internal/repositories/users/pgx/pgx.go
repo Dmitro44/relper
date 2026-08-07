@@ -45,9 +45,6 @@ returning id, email, nickname, habits, contacts, created_at;
 
 	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, users.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -84,6 +81,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 
 	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, users.ErrNotFound
+		}
 		return nil, err
 	}
 

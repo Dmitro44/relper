@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Dmitro44/relper/internal/entities/user"
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	usersvc "github.com/Dmitro44/relper/internal/services/users"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -41,7 +42,7 @@ func (h *UserHandler) Register(api huma.API) {
 func (h *UserHandler) HandleGetByID(ctx context.Context, in *GetUserRequest) (*UserResponse, error) {
 	u, err := h.svc.GetByID(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &UserResponse{Body: u}, nil
@@ -59,7 +60,7 @@ func (h *UserHandler) HandleCreate(ctx context.Context, in *CreateUserRequest) (
 	}
 	u, err := h.svc.Create(ctx, createInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &UserResponse{Body: u}, nil
@@ -82,7 +83,7 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 
 	u, err := h.svc.Update(ctx, in.ID, updateInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &UserResponse{Body: u}, nil
@@ -91,7 +92,7 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (*struct{}, error) {
 	err := h.svc.Delete(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return nil, nil

@@ -69,9 +69,6 @@ returning id, target_type, target_id, user_id, content, created_at;
 
 	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[comment.Comment])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, comments.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -108,6 +105,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInp
 
 	comment, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[comment.Comment])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, comments.ErrNotFound
+		}
 		return nil, err
 	}
 

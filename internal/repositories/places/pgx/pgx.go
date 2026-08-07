@@ -51,9 +51,6 @@ returning id, location_id, name, category, address, phone, website_url, coordina
 
 	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[place.Place])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, places.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -105,6 +102,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 
 	place, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[place.Place])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, places.ErrNotFound
+		}
 		return nil, err
 	}
 

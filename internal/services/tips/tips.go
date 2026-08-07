@@ -2,8 +2,10 @@ package tips
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/tip"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips"
 	"github.com/google/uuid"
 )
@@ -39,7 +41,10 @@ func NewTipService(repo tipsrepo.Repository) *TipService {
 func (t *TipService) GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
 	tipEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tipsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tip not found")
+		}
+		return nil, apperr.NewInternalError("failed to get tip", err)
 	}
 
 	return tipEntity, nil
@@ -55,7 +60,7 @@ func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, e
 		Upvotes:    input.Upvotes,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create tip", err)
 	}
 
 	return tipEntity, nil
@@ -71,7 +76,10 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 		Upvotes:    input.Upvotes,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tipsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tip not found")
+		}
+		return nil, apperr.NewInternalError("failed to update tip", err)
 	}
 
 	return tipEntity, nil
@@ -80,7 +88,10 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := t.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, tipsrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("tip not found")
+		}
+		return apperr.NewInternalError("failed to delete tip", err)
 	}
 
 	return nil
@@ -89,7 +100,10 @@ func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
 func (t *TipService) Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
 	updTip, err := t.repo.Upvote(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tipsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tip for upvote not found")
+		}
+		return nil, apperr.NewInternalError("failed to upvote tip", err)
 	}
 
 	return updTip, nil
@@ -98,7 +112,10 @@ func (t *TipService) Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
 func (t *TipService) RemoveUpvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
 	updTip, err := t.repo.RemoveUpvote(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tipsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tip for remove upvote not found")
+		}
+		return nil, apperr.NewInternalError("failed to remove upvote from tip", err)
 	}
 
 	return updTip, nil

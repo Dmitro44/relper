@@ -45,9 +45,6 @@ returning id, country, city, coordinates, created_at;
 
 	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[location.Location])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, locations.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -81,6 +78,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 
 	location, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[location.Location])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, locations.ErrNotFound
+		}
 		return nil, err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -40,7 +41,7 @@ func (h *CommentHandler) Register(api huma.API) {
 func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentRequest) (*CommentResponse, error) {
 	u, err := h.svc.GetByID(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &CommentResponse{Body: u}, nil
@@ -55,7 +56,7 @@ func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequ
 	}
 	u, err := h.svc.Create(ctx, createInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &CommentResponse{Body: u}, nil
@@ -71,7 +72,7 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 
 	u, err := h.svc.Update(ctx, in.ID, updateInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &CommentResponse{Body: u}, nil
@@ -80,7 +81,7 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 func (h *CommentHandler) HandleDelete(ctx context.Context, in *DeleteCommentRequest) (*struct{}, error) {
 	err := h.svc.Delete(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return nil, nil

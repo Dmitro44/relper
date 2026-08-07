@@ -2,9 +2,11 @@ package locations
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/location"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations"
 	"github.com/google/uuid"
 )
@@ -33,7 +35,10 @@ func NewLocationService(repo locationsrepo.Repository) *LocationService {
 func (l *LocationService) GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error) {
 	locationEntity, err := l.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, locationsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("location not found")
+		}
+		return nil, apperr.NewInternalError("failed to get location", err)
 	}
 
 	return locationEntity, nil
@@ -46,7 +51,7 @@ func (l *LocationService) Create(ctx context.Context, input CreateInput) (*locat
 		Coordinates: input.Coordinates,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create location", err)
 	}
 
 	return locationEntity, nil
@@ -59,7 +64,10 @@ func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input Update
 		Coordinates: input.Coordinates,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, locationsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("location not found")
+		}
+		return nil, apperr.NewInternalError("failed to update location", err)
 	}
 
 	return locationEntity, nil
@@ -68,7 +76,10 @@ func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input Update
 func (l *LocationService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := l.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, locationsrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("location not found")
+		}
+		return apperr.NewInternalError("failed to delete location", err)
 	}
 
 	return nil

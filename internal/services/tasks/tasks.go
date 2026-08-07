@@ -2,8 +2,10 @@ package tasks
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/task"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks"
 	"github.com/google/uuid"
 )
@@ -39,7 +41,10 @@ func NewTaskService(repo tasksrepo.Repository) *TaskService {
 func (t *TaskService) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
 	taskEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tasksrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("task not found")
+		}
+		return nil, apperr.NewInternalError("failed to get task", err)
 	}
 
 	return taskEntity, nil
@@ -55,7 +60,7 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 		Done:        input.Done,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create task", err)
 	}
 
 	return taskEntity, nil
@@ -71,7 +76,10 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 		Done:        input.Done,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tasksrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("task not found")
+		}
+		return nil, apperr.NewInternalError("failed to update task", err)
 	}
 
 	return taskEntity, nil
@@ -80,7 +88,10 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 func (t *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := t.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, tasksrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("task not found")
+		}
+		return apperr.NewInternalError("failed to delete task", err)
 	}
 
 	return nil

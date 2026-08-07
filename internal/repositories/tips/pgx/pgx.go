@@ -71,9 +71,6 @@ returning id, location_id, user_id, category, title, content, upvotes, created_a
 
 	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, tips.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -116,6 +113,9 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) 
 
 	tip, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[tip.Tip])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tips.ErrNotFound
+		}
 		return nil, err
 	}
 

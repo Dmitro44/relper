@@ -2,8 +2,10 @@ package tags
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/tag"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags"
 	"github.com/google/uuid"
 )
@@ -31,7 +33,10 @@ func NewTagService(repo tagsrepo.Repository) *TagService {
 func (t *TagService) GetByID(ctx context.Context, id uuid.UUID) (*tag.Tag, error) {
 	tagEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tagsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tag not found")
+		}
+		return nil, apperr.NewInternalError("failed to get tag", err)
 	}
 
 	return tagEntity, nil
@@ -43,7 +48,7 @@ func (t *TagService) Create(ctx context.Context, input CreateInput) (*tag.Tag, e
 		Slug: input.Slug,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create tag", err)
 	}
 
 	return tagEntity, nil
@@ -55,7 +60,10 @@ func (t *TagService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 		Slug: input.Slug,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, tagsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("tag not found")
+		}
+		return nil, apperr.NewInternalError("failed to update tag", err)
 	}
 
 	return tagEntity, nil
@@ -64,7 +72,10 @@ func (t *TagService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 func (t *TagService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := t.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, tagsrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("tag not found")
+		}
+		return apperr.NewInternalError("failed to delete tag", err)
 	}
 
 	return nil

@@ -2,9 +2,11 @@ package places
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/place"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places"
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/google/uuid"
@@ -49,7 +51,10 @@ type UpdateInput struct {
 func (p *PlaceService) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
 	placeEntity, err := p.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, placesrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("place not found")
+		}
+		return nil, apperr.NewInternalError("failed to get place", err)
 	}
 
 	return placeEntity, nil
@@ -74,7 +79,7 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 		Rating:      input.Rating,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create place", err)
 	}
 
 	return placeEntity, nil
@@ -93,7 +98,10 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 		Rating:      input.Rating,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, placesrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("place not found")
+		}
+		return nil, apperr.NewInternalError("failed to update place", err)
 	}
 
 	return placeEntity, nil
@@ -102,7 +110,10 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 func (p *PlaceService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := p.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, placesrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("place not found")
+		}
+		return apperr.NewInternalError("failed to delete place", err)
 	}
 
 	return nil

@@ -2,8 +2,10 @@ package comments
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/comment"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments"
 	"github.com/google/uuid"
 )
@@ -35,7 +37,10 @@ func NewCommmentService(repo commentsrepo.Repository) *CommentService {
 func (c *CommentService) GetByID(ctx context.Context, id uuid.UUID) (*comment.Comment, error) {
 	commentEntity, err := c.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, commentsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("comment not found")
+		}
+		return nil, apperr.NewInternalError("failed to get comment", err)
 	}
 
 	return commentEntity, nil
@@ -56,7 +61,7 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 		Content:    input.Content,
 	})
 	if err != nil {
-		return nil, err
+		return nil, apperr.NewInternalError("failed to create comment", err)
 	}
 
 	return commentEntity, nil
@@ -74,7 +79,10 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 		Content:    input.Content,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, commentsrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("comment not found")
+		}
+		return nil, apperr.NewInternalError("failed to update comment", err)
 	}
 
 	return commentEntity, nil
@@ -83,7 +91,10 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 func (c *CommentService) Delete(ctx context.Context, id uuid.UUID) error {
 	err := c.repo.Delete(ctx, id)
 	if err != nil {
-		return err
+		if errors.Is(err, commentsrepo.ErrNotFound) {
+			return apperr.NewNotFoundError("comment not found")
+		}
+		return apperr.NewInternalError("failed to delete comment", err)
 	}
 
 	return nil

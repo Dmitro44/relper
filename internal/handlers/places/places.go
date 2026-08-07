@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	placesvc "github.com/Dmitro44/relper/internal/services/places"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -41,7 +42,7 @@ func (h *PlaceHandler) Register(api huma.API) {
 func (h *PlaceHandler) HandleGetByID(ctx context.Context, in *GetPlaceRequest) (*PlaceResponse, error) {
 	p, err := h.svc.GetByID(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &PlaceResponse{Body: p}, nil
@@ -64,7 +65,7 @@ func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest)
 	}
 	p, err := h.svc.Create(ctx, createInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &PlaceResponse{Body: p}, nil
@@ -90,7 +91,7 @@ func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest)
 
 	p, err := h.svc.Update(ctx, in.ID, updateInput)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return &PlaceResponse{Body: p}, nil
@@ -99,7 +100,7 @@ func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest)
 func (h *PlaceHandler) HandleDelete(ctx context.Context, in *DeletePlaceRequest) (*struct{}, error) {
 	err := h.svc.Delete(ctx, in.ID)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	return nil, nil
