@@ -3,6 +3,7 @@ package locations
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/location"
@@ -53,6 +54,7 @@ func (l *LocationService) Create(ctx context.Context, input CreateInput) (*locat
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create location", err)
 	}
+	slog.InfoContext(ctx, "location created", "location_id", locationEntity.ID)
 
 	return locationEntity, nil
 }
@@ -69,6 +71,7 @@ func (l *LocationService) Update(ctx context.Context, id uuid.UUID, input Update
 		}
 		return nil, apperr.NewInternalError("failed to update location", err)
 	}
+	slog.InfoContext(ctx, "location updated", "location_id", locationEntity.ID)
 
 	return locationEntity, nil
 }
@@ -81,6 +84,7 @@ func (l *LocationService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete location", err)
 	}
+	slog.InfoContext(ctx, "location deleted", "location_id", id)
 
 	return nil
 }

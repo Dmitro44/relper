@@ -3,6 +3,7 @@ package places
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/place"
@@ -81,6 +82,7 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create place", err)
 	}
+	slog.InfoContext(ctx, "place created", "place_id", placeEntity.ID)
 
 	return placeEntity, nil
 }
@@ -103,6 +105,7 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 		}
 		return nil, apperr.NewInternalError("failed to update place", err)
 	}
+	slog.InfoContext(ctx, "place updated", "place_id", placeEntity.ID)
 
 	return placeEntity, nil
 }
@@ -115,6 +118,7 @@ func (p *PlaceService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete place", err)
 	}
+	slog.InfoContext(ctx, "place deleted", "place_id", id)
 
 	return nil
 }

@@ -3,6 +3,7 @@ package tags
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/tag"
 	apperr "github.com/Dmitro44/relper/internal/errors"
@@ -50,6 +51,7 @@ func (t *TagService) Create(ctx context.Context, input CreateInput) (*tag.Tag, e
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create tag", err)
 	}
+	slog.InfoContext(ctx, "tag created", "tag_id", tagEntity.ID)
 
 	return tagEntity, nil
 }
@@ -65,6 +67,7 @@ func (t *TagService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 		}
 		return nil, apperr.NewInternalError("failed to update tag", err)
 	}
+	slog.InfoContext(ctx, "tag updated", "tag_id", tagEntity.ID)
 
 	return tagEntity, nil
 }
@@ -77,6 +80,7 @@ func (t *TagService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete tag", err)
 	}
+	slog.InfoContext(ctx, "tag deleted", "tag_id", id)
 
 	return nil
 }

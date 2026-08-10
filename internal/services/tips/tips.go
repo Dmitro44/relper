@@ -3,6 +3,7 @@ package tips
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/tip"
 	apperr "github.com/Dmitro44/relper/internal/errors"
@@ -62,6 +63,7 @@ func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, e
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create tip", err)
 	}
+	slog.InfoContext(ctx, "tip created", "tip_id", tipEntity.ID)
 
 	return tipEntity, nil
 }
@@ -81,6 +83,7 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 		}
 		return nil, apperr.NewInternalError("failed to update tip", err)
 	}
+	slog.InfoContext(ctx, "tip updated", "tip_id", tipEntity.ID)
 
 	return tipEntity, nil
 }
@@ -93,6 +96,7 @@ func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete tip", err)
 	}
+	slog.InfoContext(ctx, "tip deleted", "tip_id", id)
 
 	return nil
 }
@@ -105,6 +109,7 @@ func (t *TipService) Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
 		}
 		return nil, apperr.NewInternalError("failed to upvote tip", err)
 	}
+	slog.InfoContext(ctx, "tip upvoted", "tip_id", updTip.ID)
 
 	return updTip, nil
 }
@@ -117,6 +122,7 @@ func (t *TipService) RemoveUpvote(ctx context.Context, id uuid.UUID) (*tip.Tip, 
 		}
 		return nil, apperr.NewInternalError("failed to remove upvote from tip", err)
 	}
+	slog.InfoContext(ctx, "tip removed upvote", "tip_id", updTip.ID)
 
 	return updTip, nil
 }

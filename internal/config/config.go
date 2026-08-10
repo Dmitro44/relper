@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	DatabaseURL string `env:"DATABASE_URL"`
+	AppEnv      string `env:"APP_ENV" envDefault:"development"`
 }
 
 func Load() (*Config, error) {
@@ -15,7 +16,7 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	config := &Config{}
+	config := new(Config)
 	err = env.Parse(config)
 	if err != nil {
 		return nil, err

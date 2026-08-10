@@ -9,6 +9,8 @@ import (
 	"github.com/Dmitro44/relper/internal/config"
 	"github.com/Dmitro44/relper/internal/database"
 	"github.com/Dmitro44/relper/internal/handlers"
+	"github.com/Dmitro44/relper/internal/logger"
+	"github.com/Dmitro44/relper/internal/middlewares"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places/pgx"
@@ -29,20 +31,25 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		slog.Error("unable to load config", "error", err)
+		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
+
+	logger := logger.New(cfg.AppEnv)
+	slog.SetDefault(logger)
 
 	ctx := context.Background()
 
 	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
 	if err != nil {
-		slog.Error("unable to connect to database", "error", err)
+		slog.Error("failed to connect to database", "error", err)
 		os.Exit(1)
 	}
 
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
 	app := fiber.New()
+	app.Use(middlewares.RequestLogger())
+
 	handlers.Register(app, handlers.Deps{
 		Users:     userservice.NewUserService(usersrepo.NewUsersRepo(pool)),
 		Comments:  comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool)),

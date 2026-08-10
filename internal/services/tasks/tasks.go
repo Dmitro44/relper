@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/task"
 	apperr "github.com/Dmitro44/relper/internal/errors"
@@ -62,6 +63,7 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create task", err)
 	}
+	slog.InfoContext(ctx, "task created", "task_id", taskEntity.ID)
 
 	return taskEntity, nil
 }
@@ -81,6 +83,7 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 		}
 		return nil, apperr.NewInternalError("failed to update task", err)
 	}
+	slog.InfoContext(ctx, "task updated", "task_id", taskEntity.ID)
 
 	return taskEntity, nil
 }
@@ -93,6 +96,7 @@ func (t *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete task", err)
 	}
+	slog.InfoContext(ctx, "task deleted", "task_id", id)
 
 	return nil
 }

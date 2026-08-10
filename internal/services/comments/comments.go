@@ -3,6 +3,7 @@ package comments
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/comment"
 	apperr "github.com/Dmitro44/relper/internal/errors"
@@ -63,6 +64,7 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create comment", err)
 	}
+	slog.InfoContext(ctx, "comment created", "comment_id", commentEntity.ID)
 
 	return commentEntity, nil
 }
@@ -84,6 +86,7 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 		}
 		return nil, apperr.NewInternalError("failed to update comment", err)
 	}
+	slog.InfoContext(ctx, "comment updated", "comment_id", commentEntity.ID)
 
 	return commentEntity, nil
 }
@@ -96,6 +99,7 @@ func (c *CommentService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete comment", err)
 	}
+	slog.InfoContext(ctx, "comment deleted", "comment_id", id)
 
 	return nil
 }

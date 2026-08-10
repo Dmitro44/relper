@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	userentity "github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
@@ -56,6 +57,7 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create user", err)
 	}
+	slog.InfoContext(ctx, "user created", "user_id", userEntity.ID)
 
 	return userEntity, nil
 }
@@ -73,6 +75,7 @@ func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 		}
 		return nil, apperr.NewInternalError("failed to update user", err)
 	}
+	slog.InfoContext(ctx, "user updated", "user_id", userEntity.ID)
 
 	return userEntity, nil
 }
@@ -85,6 +88,7 @@ func (u *UserService) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 		return apperr.NewInternalError("failed to delete user", err)
 	}
+	slog.InfoContext(ctx, "user deleted", "user_id", id)
 
 	return nil
 }
