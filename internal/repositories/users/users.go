@@ -9,21 +9,24 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*user.User, error)
+	GetByEmail(ctx context.Context, email string) (*user.User, error)
 	Create(ctx context.Context, input CreateInput) (*user.User, error)
 	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*user.User, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type CreateInput struct {
-	Email    string
-	Nickname string
-	Habits   []string
-	Contacts user.Contacts
+	Email        string
+	PasswordHash []byte
+	Nickname     string
+	Habits       []string
+	Contacts     user.Contacts
 }
 
 type UpdateInput struct {
-	Email    *string
-	Nickname *string
-	Habits   *[]string
-	Contacts *user.Contacts
+	Email        *string
+	PasswordHash *[]byte
+	Nickname     *string
+	Habits       *[]string
+	Contacts     *user.Contacts
 }

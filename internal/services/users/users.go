@@ -22,10 +22,11 @@ func NewUserService(repo usersrepo.Repository) *UserService {
 }
 
 type CreateInput struct {
-	Email    string
-	Nickname string
-	Habits   []string
-	Contacts userentity.Contacts
+	Email        string
+	PasswordHash []byte
+	Nickname     string
+	Habits       []string
+	Contacts     userentity.Contacts
 }
 
 type UpdateInput struct {
@@ -42,6 +43,18 @@ func (u *UserService) GetByID(ctx context.Context, id uuid.UUID) (*userentity.Us
 			return nil, apperr.NewNotFoundError("user not found")
 		}
 		return nil, apperr.NewInternalError("failed to get user", err)
+	}
+
+	return userEntity, nil
+}
+
+func (u *UserService) GetByEmail(ctx context.Context, email string) (*userentity.User, error) {
+	userEntity, err := u.repo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, usersrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("user by email not found ")
+		}
+		return nil, err
 	}
 
 	return userEntity, nil

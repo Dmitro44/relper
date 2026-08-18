@@ -28,13 +28,14 @@ func NewUsersRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) Create(ctx context.Context, input users.CreateInput) (*user.User, error) {
 	createQuery := `
-insert into users (email, nickname, habits, contacts)
+insert into users (email, password_hash, nickname, habits, contacts)
 values ($1, $2, $3, $4)
 returning id, email, nickname, habits, contacts, created_at;
 `
 	rows, err := p.pool.Query(
 		ctx, createQuery,
 		input.Email,
+		input.PasswordHash,
 		input.Nickname,
 		input.Habits,
 		input.Contacts,
@@ -98,6 +99,29 @@ where id = $1
 `
 
 	rows, err := p.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[user.User])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, users.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (p *Pgx) GetByEmail(ctx context.Context, email string) (*user.User, error) {
+	query := `
+select id, email, nickname, habits, contacts, created_at
+from users
+where email = $1
+`
+
+	rows, err := p.pool.Query(ctx, query, email)
 	if err != nil {
 		return nil, err
 	}

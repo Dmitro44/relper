@@ -8,6 +8,7 @@ import (
 type Config struct {
 	DatabaseURL string `env:"DATABASE_URL"`
 	AppEnv      string `env:"APP_ENV" envDefault:"development"`
+	JWTSecret   string `env:"JWT_SECRET"`
 }
 
 func Load() (*Config, error) {

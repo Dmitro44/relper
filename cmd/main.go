@@ -18,6 +18,7 @@ import (
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips/pgx"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users/pgx"
+	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/Dmitro44/relper/internal/services/comments"
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/Dmitro44/relper/internal/services/places"
@@ -47,11 +48,18 @@ func main() {
 	}
 
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
+	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool))
+	authService := auth.NewAuthService(userService, cfg)
+
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
 
+	// not all routes should be checked by auth middleware
+	app.Use(middlewares.RequireAuth(authService))
+
 	handlers.Register(app, handlers.Deps{
-		Users:     userservice.NewUserService(usersrepo.NewUsersRepo(pool)),
+		Users:     userService,
+		Auth:      authService,
 		Comments:  comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool)),
 		Locations: locationService,
 		Places:    places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService),

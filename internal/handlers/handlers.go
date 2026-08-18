@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/Dmitro44/relper/internal/handlers/auth"
 	"github.com/Dmitro44/relper/internal/handlers/comments"
 	"github.com/Dmitro44/relper/internal/handlers/locations"
 	"github.com/Dmitro44/relper/internal/handlers/places"
@@ -8,6 +9,7 @@ import (
 	"github.com/Dmitro44/relper/internal/handlers/tasks"
 	"github.com/Dmitro44/relper/internal/handlers/tips"
 	"github.com/Dmitro44/relper/internal/handlers/users"
+	authsvc "github.com/Dmitro44/relper/internal/services/auth"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
 	locationsvc "github.com/Dmitro44/relper/internal/services/locations"
 	placesvc "github.com/Dmitro44/relper/internal/services/places"
@@ -22,6 +24,7 @@ import (
 
 type Deps struct {
 	Users     *usersvc.UserService
+	Auth      *authsvc.AuthService
 	Comments  *commentsvc.CommentService
 	Locations *locationsvc.LocationService
 	Places    *placesvc.PlaceService
@@ -33,7 +36,7 @@ type Deps struct {
 func Register(app *fiber.App, d Deps) {
 	config := huma.DefaultConfig("Relper API", "0.1.0")
 	config.DocsRenderer = huma.DocsRendererScalar
-	config.OpenAPI.Tags = []*huma.Tag{
+	config.Tags = []*huma.Tag{
 		{Name: "Users"},
 		{Name: "Comments"},
 		{Name: "Locations"},
@@ -46,6 +49,7 @@ func Register(app *fiber.App, d Deps) {
 	api := humafiber.New(app, config)
 
 	users.NewUserHandler(d.Users).Register(api)
+	auth.NewAuthHandler(d.Auth).Register(api)
 	comments.NewCommentHandler(d.Comments).Register(api)
 	locations.NewLocationHandler(d.Locations).Register(api)
 	places.NewPlaceHandler(d.Places).Register(api)
