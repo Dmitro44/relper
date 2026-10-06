@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/Dmitro44/relper/internal/handlers/dto"
 )
 
@@ -21,7 +23,15 @@ type LoginRequest struct {
 	}
 }
 
+type RefreshRequest struct {
+	RefreshToken string `cookie:"refresh_token"`
+}
+
+type AuthReponseBody struct {
+	User        *dto.UserResponse `json:"user"`
+	AccessToken string            `json:"access_token"`
+}
 type AuthResponse struct {
-	User        *dto.UserResponse
-	AccessToken string
+	Body          AuthReponseBody
+	RefreshCookie http.Cookie `header:"Set-Cookie"`
 }

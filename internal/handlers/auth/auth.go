@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/Dmitro44/relper/internal/entities/user"
+	apperr "github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/dto"
+	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -22,6 +24,7 @@ func NewAuthHandler(svc *auth.AuthService) *AuthHandler {
 
 func (h *AuthHandler) Register(api huma.API) {
 	huma.Post(api, "/auth/login", h.HandleLogin)
+	huma.Post(api, "/auth/refresh", h.HandleRefresh)
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "register-user",
@@ -47,9 +50,9 @@ func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (
 		}
 	}
 
-	user, token, err := h.svc.Register(ctx, input)
+	user, pair, err := h.svc.Register(ctx, input)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	// Move in mapper
@@ -62,15 +65,18 @@ func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (
 	}
 
 	return &AuthResponse{
-		User:        dto,
-		AccessToken: token,
+		Body: AuthReponseBody{
+			User:        dto,
+			AccessToken: pair.AccessToken,
+		},
+		RefreshCookie: refreshCookie(pair.RefreshToken),
 	}, nil
 }
 
 func (h *AuthHandler) HandleLogin(ctx context.Context, in *LoginRequest) (*AuthResponse, error) {
-	user, token, err := h.svc.Login(ctx, in.Body.Email, in.Body.Password)
+	user, pair, err := h.svc.Login(ctx, in.Body.Email, in.Body.Password)
 	if err != nil {
-		return nil, err
+		return nil, httperr.Map(err)
 	}
 
 	dto := &dto.UserResponse{
@@ -82,7 +88,38 @@ func (h *AuthHandler) HandleLogin(ctx context.Context, in *LoginRequest) (*AuthR
 	}
 
 	return &AuthResponse{
-		User:        dto,
-		AccessToken: token,
+		Body: AuthReponseBody{
+			User:        dto,
+			AccessToken: pair.AccessToken,
+		},
+		RefreshCookie: refreshCookie(pair.RefreshToken),
 	}, nil
+}
+
+func (h *AuthHandler) HandleRefresh(ctx context.Context, in *RefreshRequest) (*AuthResponse, error) {
+	if in.RefreshToken == "" {
+		return nil, httperr.Map(apperr.NewUnauthorizedError("refresh token required"))
+	}
+
+	pair, err := h.svc.Refresh(ctx, in.RefreshToken)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &AuthResponse{
+		Body:          AuthReponseBody{AccessToken: pair.AccessToken},
+		RefreshCookie: refreshCookie(pair.RefreshToken),
+	}, nil
+}
+
+func refreshCookie(token string) http.Cookie {
+	return http.Cookie{
+		Name:     "refresh_token",
+		Value:    token,
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   15 * 24 * 60 * 60,
+	}
 }

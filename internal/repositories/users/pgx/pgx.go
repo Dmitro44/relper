@@ -29,8 +29,8 @@ func NewUsersRepo(pool *pgxpool.Pool) *Pgx {
 func (p *Pgx) Create(ctx context.Context, input users.CreateInput) (*user.User, error) {
 	createQuery := `
 insert into users (email, password_hash, nickname, habits, contacts)
-values ($1, $2, $3, $4)
-returning id, email, nickname, habits, contacts, created_at;
+values ($1, $2, $3, $4, $5)
+returning id, email, password_hash, nickname, habits, contacts, created_at;
 `
 	rows, err := p.pool.Query(
 		ctx, createQuery,
@@ -68,7 +68,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 		updateBuilder = updateBuilder.Set("contacts", input.Contacts)
 	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, email, nickname, habits, contacts, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, email, password_hash, nickname, habits, contacts, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -93,7 +93,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input users.UpdateInput)
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	query := `
-select id, email, nickname, habits, contacts, created_at
+select id, email, password_hash, nickname, habits, contacts, created_at
 from users
 where id = $1
 `
@@ -116,7 +116,7 @@ where id = $1
 
 func (p *Pgx) GetByEmail(ctx context.Context, email string) (*user.User, error) {
 	query := `
-select id, email, nickname, habits, contacts, created_at
+select id, email, password_hash, nickname, habits, contacts, created_at
 from users
 where email = $1
 `

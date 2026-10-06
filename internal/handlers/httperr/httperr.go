@@ -12,6 +12,8 @@ import (
 func Status(err error) int {
 	if appErr, ok := errors.AsType[*apperr.AppError](err); ok {
 		switch appErr.Code {
+		case apperr.ErrorCodeConflict:
+			return http.StatusConflict
 		case apperr.ErrorCodeNotFound:
 			return http.StatusNotFound
 		case apperr.ErrorCodeForbidden:

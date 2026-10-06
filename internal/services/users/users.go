@@ -62,10 +62,11 @@ func (u *UserService) GetByEmail(ctx context.Context, email string) (*userentity
 
 func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentity.User, error) {
 	userEntity, err := u.repo.Create(ctx, usersrepo.CreateInput{
-		Email:    input.Email,
-		Nickname: input.Nickname,
-		Habits:   input.Habits,
-		Contacts: input.Contacts,
+		Email:        input.Email,
+		PasswordHash: input.PasswordHash,
+		Nickname:     input.Nickname,
+		Habits:       input.Habits,
+		Contacts:     input.Contacts,
 	})
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create user", err)
