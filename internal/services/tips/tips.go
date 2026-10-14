@@ -26,7 +26,6 @@ type CreateInput struct {
 
 type UpdateInput struct {
 	LocationID *uuid.UUID
-	UserID     *uuid.UUID
 	Category   *string
 	Title      *string
 	Content    *string
@@ -68,10 +67,9 @@ func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, e
 	return tipEntity, nil
 }
 
-func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*tip.Tip, error) {
-	tipEntity, err := t.repo.Update(ctx, id, tipsrepo.UpdateInput{
+func (t *TipService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*tip.Tip, error) {
+	tipEntity, err := t.repo.Update(ctx, id, userID, tipsrepo.UpdateInput{
 		LocationID: input.LocationID,
-		UserID:     input.UserID,
 		Category:   input.Category,
 		Title:      input.Title,
 		Content:    input.Content,
@@ -88,8 +86,8 @@ func (t *TipService) Update(ctx context.Context, id uuid.UUID, input UpdateInput
 	return tipEntity, nil
 }
 
-func (t *TipService) Delete(ctx context.Context, id uuid.UUID) error {
-	err := t.repo.Delete(ctx, id)
+func (t *TipService) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	err := t.repo.Delete(ctx, id, userID)
 	if err != nil {
 		if errors.Is(err, tipsrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("tip not found")

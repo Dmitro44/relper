@@ -25,7 +25,6 @@ type CreateInput struct {
 type UpdateInput struct {
 	TargetType *string
 	TargetID   *uuid.UUID
-	UserID     *uuid.UUID
 	Content    *string
 }
 
@@ -69,15 +68,14 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 	return commentEntity, nil
 }
 
-func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*comment.Comment, error) {
+func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*comment.Comment, error) {
 	// checks for ids (target, user)
 	//
 	// another business logic
 
-	commentEntity, err := c.repo.Update(ctx, id, commentsrepo.UpdateInput{
+	commentEntity, err := c.repo.Update(ctx, id, userID, commentsrepo.UpdateInput{
 		TargetType: input.TargetType,
 		TargetID:   input.TargetID,
-		UserID:     input.UserID,
 		Content:    input.Content,
 	})
 	if err != nil {
@@ -91,8 +89,8 @@ func (c *CommentService) Update(ctx context.Context, id uuid.UUID, input UpdateI
 	return commentEntity, nil
 }
 
-func (c *CommentService) Delete(ctx context.Context, id uuid.UUID) error {
-	err := c.repo.Delete(ctx, id)
+func (c *CommentService) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	err := c.repo.Delete(ctx, id, userID)
 	if err != nil {
 		if errors.Is(err, commentsrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("comment not found")

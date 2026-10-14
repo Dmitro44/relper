@@ -77,14 +77,11 @@ returning id, location_id, user_id, category, title, content, upvotes, created_a
 	return &tip, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) (*tip.Tip, error) {
-	updateBuilder := sq.Update("tips").Where(squirrel.Eq{"id": id})
+func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, input tips.UpdateInput) (*tip.Tip, error) {
+	updateBuilder := sq.Update("tips").Where(squirrel.Eq{"id": id, "user_id": userID})
 
 	if input.LocationID != nil {
 		updateBuilder = updateBuilder.Set("location_id", input.LocationID)
-	}
-	if input.UserID != nil {
-		updateBuilder = updateBuilder.Set("user_id", input.UserID)
 	}
 	if input.Category != nil {
 		updateBuilder = updateBuilder.Set("category", input.Category)
@@ -122,13 +119,13 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input tips.UpdateInput) 
 	return &tip, nil
 }
 
-func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+func (p *Pgx) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	query := `
 delete from tips
-where id = $1
+where id = $1 and user_id = $2
 `
 
-	tag, err := p.pool.Exec(ctx, query, id)
+	tag, err := p.pool.Exec(ctx, query, id, userID)
 	if err != nil {
 		return err
 	}

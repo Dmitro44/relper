@@ -76,7 +76,11 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 	return userEntity, nil
 }
 
-func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*userentity.User, error) {
+func (u *UserService) Update(ctx context.Context, id, callerID uuid.UUID, input UpdateInput) (*userentity.User, error) {
+	if id != callerID {
+		return nil, apperr.NewForbiddenError("cannot modify another user")
+	}
+
 	userEntity, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{
 		Email:    input.Email,
 		Nickname: input.Nickname,
@@ -94,7 +98,11 @@ func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 	return userEntity, nil
 }
 
-func (u *UserService) Delete(ctx context.Context, id uuid.UUID) error {
+func (u *UserService) Delete(ctx context.Context, id, callerID uuid.UUID) error {
+	if id != callerID {
+		return apperr.NewForbiddenError("cannot delete another user")
+	}
+
 	err := u.repo.Delete(ctx, id)
 	if err != nil {
 		if errors.Is(err, usersrepo.ErrNotFound) {

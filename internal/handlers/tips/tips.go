@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
 	"github.com/danielgtaylor/huma/v2"
@@ -59,9 +61,13 @@ func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*Tip
 }
 
 func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*TipResponse, error) {
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
 	t, err := h.svc.Create(ctx, tipsvc.CreateInput{
 		LocationID: in.Body.LocationID,
-		UserID:     in.Body.UserID,
+		UserID:     userID,
 		Category:   in.Body.Category,
 		Title:      in.Body.Title,
 		Content:    in.Body.Content,
@@ -75,9 +81,12 @@ func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*T
 }
 
 func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*TipResponse, error) {
-	t, err := h.svc.Update(ctx, in.ID, tipsvc.UpdateInput{
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	t, err := h.svc.Update(ctx, in.ID, userID, tipsvc.UpdateInput{
 		LocationID: in.Body.LocationID,
-		UserID:     in.Body.UserID,
 		Category:   in.Body.Category,
 		Title:      in.Body.Title,
 		Content:    in.Body.Content,
@@ -91,7 +100,11 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 }
 
 func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*struct{}, error) {
-	err := h.svc.Delete(ctx, in.ID)
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	err := h.svc.Delete(ctx, in.ID, userID)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

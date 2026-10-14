@@ -10,8 +10,8 @@ import (
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error)
 	Create(ctx context.Context, input CreateInput) (*task.Task, error)
-	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*task.Task, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*task.Task, error)
+	Delete(ctx context.Context, id, userID uuid.UUID) error
 }
 
 type CreateInput struct {
@@ -25,7 +25,6 @@ type CreateInput struct {
 
 type UpdateInput struct {
 	LocationID  *uuid.UUID
-	UserID      *uuid.UUID
 	Title       *string
 	Description *string
 	PlaceID     *uuid.UUID

@@ -17,7 +17,6 @@ type CreateCommentRequest struct {
 	Body struct {
 		TargetType string    `json:"target_type" minLength:"1" doc:"Type of the target (e.g. tip, place)"`
 		TargetID   uuid.UUID `json:"target_id"`
-		UserID     uuid.UUID `json:"user_id"`
 		Content    string    `json:"content" minLength:"1"`
 	}
 }
@@ -27,7 +26,6 @@ type UpdateCommentRequest struct {
 	Body struct {
 		TargetType *string    `json:"target_type,omitempty"`
 		TargetID   *uuid.UUID `json:"target_id,omitempty"`
-		UserID     *uuid.UUID `json:"user_id,omitempty"`
 		Content    *string    `json:"content,omitempty" minLength:"1"`
 	}
 }

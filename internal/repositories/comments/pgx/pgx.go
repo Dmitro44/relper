@@ -75,17 +75,14 @@ returning id, target_type, target_id, user_id, content, created_at;
 	return &comment, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInput) (*comment.Comment, error) {
-	updateBuilder := sq.Update("comments").Where(squirrel.Eq{"id": id})
+func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, input comments.UpdateInput) (*comment.Comment, error) {
+	updateBuilder := sq.Update("comments").Where(squirrel.Eq{"id": id, "user_id": userID})
 
 	if input.TargetType != nil {
 		updateBuilder = updateBuilder.Set("target_type", input.TargetType)
 	}
 	if input.TargetID != nil {
 		updateBuilder = updateBuilder.Set("target_id", input.TargetID)
-	}
-	if input.UserID != nil {
-		updateBuilder = updateBuilder.Set("user_id", input.UserID)
 	}
 	if input.Content != nil {
 		updateBuilder = updateBuilder.Set("content", input.Content)
@@ -114,13 +111,13 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input comments.UpdateInp
 	return &comment, nil
 }
 
-func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
+func (p *Pgx) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	query := `
 delete from comments
-where id = $1
+where id = $1 and user_id = $2
 `
 
-	tag, err := p.pool.Exec(ctx, query, id)
+	tag, err := p.pool.Exec(ctx, query, id, userID)
 	if err != nil {
 		return err
 	}

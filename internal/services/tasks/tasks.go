@@ -26,7 +26,6 @@ type CreateInput struct {
 
 type UpdateInput struct {
 	LocationID  *uuid.UUID
-	UserID      *uuid.UUID
 	Title       *string
 	Description *string
 	PlaceID     *uuid.UUID
@@ -68,10 +67,9 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 	return taskEntity, nil
 }
 
-func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*task.Task, error) {
-	taskEntity, err := t.repo.Update(ctx, id, tasksrepo.UpdateInput{
+func (t *TaskService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*task.Task, error) {
+	taskEntity, err := t.repo.Update(ctx, id, userID, tasksrepo.UpdateInput{
 		LocationID:  input.LocationID,
-		UserID:      input.UserID,
 		Title:       input.Title,
 		Description: input.Description,
 		PlaceID:     input.PlaceID,
@@ -88,8 +86,8 @@ func (t *TaskService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 	return taskEntity, nil
 }
 
-func (t *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
-	err := t.repo.Delete(ctx, id)
+func (t *TaskService) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	err := t.repo.Delete(ctx, id, userID)
 	if err != nil {
 		if errors.Is(err, tasksrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("task not found")
