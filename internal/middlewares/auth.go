@@ -8,8 +8,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func RequireAuth(authService *auth.AuthService) fiber.Handler {
+func RequireAuth(authService *auth.AuthService, publicPrefixes ...string) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		for _, prefix := range publicPrefixes {
+			if c.Path() == prefix || strings.HasPrefix(c.Path(), prefix+"/") {
+				return c.Next()
+			}
+		}
+
 		authField := c.Get("Authorization")
 		if authField == "" {
 			return fiber.ErrUnauthorized

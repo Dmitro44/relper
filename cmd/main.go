@@ -55,8 +55,7 @@ func main() {
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
 
-	// not all routes should be checked by auth middleware
-	app.Use(middlewares.RequireAuth(authService))
+	app.Use(middlewares.RequireAuth(authService, "/auth"))
 
 	handlers.Register(app, handlers.Deps{
 		Users:     userService,
