@@ -183,7 +183,7 @@ func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*j
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, apperr.NewUnauthorizedError("jwt token is invalid")
 		}
-		return s.config.JWTSecret, nil
+		return []byte(s.config.JWTSecret), nil
 	}
 	_, err := jwt.ParseWithClaims(
 		token, &claims, keyFunc,
@@ -206,7 +206,7 @@ func (s *AuthService) generateAccessToken(userID uuid.UUID) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	access, err := token.SignedString(s.config.JWTSecret)
+	access, err := token.SignedString([]byte(s.config.JWTSecret))
 	if err != nil {
 		return "", err
 	}
