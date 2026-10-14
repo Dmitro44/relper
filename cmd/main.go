@@ -27,6 +27,7 @@ import (
 	"github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/Dmitro44/relper/internal/services/tips"
 	userservice "github.com/Dmitro44/relper/internal/services/users"
+	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -55,9 +56,9 @@ func main() {
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
 
-	app.Use(middlewares.RequireAuth(authService, "/auth"))
+	api := humafiber.New(app, handlers.Config())
 
-	handlers.Register(app, handlers.Deps{
+	handlers.Register(api, handlers.Deps{
 		Users:     userService,
 		Auth:      authService,
 		Comments:  comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool)),
