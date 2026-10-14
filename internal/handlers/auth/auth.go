@@ -6,8 +6,8 @@ import (
 
 	"github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
-	"github.com/Dmitro44/relper/internal/handlers/dto"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
+	"github.com/Dmitro44/relper/internal/handlers/users"
 	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -55,18 +55,9 @@ func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	// Move in mapper
-	dto := &dto.UserResponse{
-		ID:       user.ID,
-		Email:    user.Email,
-		Nickname: user.Nickname,
-		Habits:   user.Habits,
-		Contacts: dto.ContactsInput(user.Contacts),
-	}
-
 	return &AuthResponse{
 		Body: AuthReponseBody{
-			User:        dto,
+			User:        users.MapUserToDto(user),
 			AccessToken: pair.AccessToken,
 		},
 		RefreshCookie: refreshCookie(pair.RefreshToken),
@@ -79,17 +70,9 @@ func (h *AuthHandler) HandleLogin(ctx context.Context, in *LoginRequest) (*AuthR
 		return nil, httperr.Map(err)
 	}
 
-	dto := &dto.UserResponse{
-		ID:       user.ID,
-		Email:    user.Email,
-		Nickname: user.Nickname,
-		Habits:   user.Habits,
-		Contacts: dto.ContactsInput(user.Contacts),
-	}
-
 	return &AuthResponse{
 		Body: AuthReponseBody{
-			User:        dto,
+			User:        users.MapUserToDto(user),
 			AccessToken: pair.AccessToken,
 		},
 		RefreshCookie: refreshCookie(pair.RefreshToken),

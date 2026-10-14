@@ -20,6 +20,20 @@ func NewUserHandler(svc *usersvc.UserService) *UserHandler {
 	}
 }
 
+func MapUserToDto(u *user.User) *dto.UserResponse {
+	if u == nil {
+		return nil
+	}
+
+	return &dto.UserResponse{
+		ID:       u.ID,
+		Email:    u.Email,
+		Nickname: u.Nickname,
+		Habits:   u.Habits,
+		Contacts: dto.ContactsInput(u.Contacts),
+	}
+}
+
 func (h *UserHandler) Register(api huma.API) {
 	grp := huma.NewGroup(api)
 	grp.UseSimpleModifier(func(op *huma.Operation) {
@@ -37,16 +51,7 @@ func (h *UserHandler) HandleGetByID(ctx context.Context, in *GetUserRequest) (*U
 		return nil, httperr.Map(err)
 	}
 
-	// Move in mapper
-	dto := &dto.UserResponse{
-		ID:       u.ID,
-		Email:    u.Email,
-		Nickname: u.Nickname,
-		Habits:   u.Habits,
-		Contacts: dto.ContactsInput(u.Contacts),
-	}
-
-	return &UserResponse{Body: dto}, nil
+	return &UserResponse{Body: MapUserToDto(u)}, nil
 }
 
 func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (*UserResponse, error) {
@@ -69,16 +74,7 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	// Move in mapper
-	dto := &dto.UserResponse{
-		ID:       u.ID,
-		Email:    u.Email,
-		Nickname: u.Nickname,
-		Habits:   u.Habits,
-		Contacts: dto.ContactsInput(u.Contacts),
-	}
-
-	return &UserResponse{Body: dto}, nil
+	return &UserResponse{Body: MapUserToDto(u)}, nil
 }
 
 func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (*struct{}, error) {
