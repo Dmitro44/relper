@@ -99,6 +99,18 @@ func (s *AuthService) Login(ctx context.Context, email string, password string) 
 	return user, pair, nil
 }
 
+func (s *AuthService) Logout(ctx context.Context, token string) error {
+	sum := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(sum[:])
+
+	err := s.reftokrepo.RevokeByHash(ctx, tokenHash)
+	if err != nil {
+		return apperr.NewInternalError("failed to revoke refresh token", err)
+	}
+
+	return nil
+}
+
 func (s *AuthService) Refresh(ctx context.Context, token string) (*TokenPair, error) {
 	sum := sha256.Sum256([]byte(token))
 	tokenHash := hex.EncodeToString(sum[:])

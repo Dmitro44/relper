@@ -27,6 +27,14 @@ type RefreshRequest struct {
 	RefreshToken string `cookie:"refresh_token"`
 }
 
+type LogoutRequest struct {
+	RefreshToken string `cookie:"refresh_token"`
+}
+
+type LogoutResponse struct {
+	ClearCookie http.Cookie `header:"Set-Cookie"`
+}
+
 type AuthReponseBody struct {
 	User        *dto.UserResponse `json:"user"`
 	AccessToken string            `json:"access_token"`

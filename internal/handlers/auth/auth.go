@@ -33,6 +33,14 @@ func (h *AuthHandler) Register(api huma.API) {
 		Summary:       "Register a user",
 		DefaultStatus: http.StatusCreated,
 	}, h.HandleRegister)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "logout",
+		Method:        http.MethodPost,
+		Path:          "/auth/logout",
+		Summary:       "Logout",
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleLogout)
 }
 
 func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (*AuthResponse, error) {
@@ -79,6 +87,14 @@ func (h *AuthHandler) HandleLogin(ctx context.Context, in *LoginRequest) (*AuthR
 	}, nil
 }
 
+func (h *AuthHandler) HandleLogout(ctx context.Context, in *LogoutRequest) (*LogoutResponse, error) {
+	if err := h.svc.Logout(ctx, in.RefreshToken); err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &LogoutResponse{ClearCookie: clearRefreshCookie()}, nil
+}
+
 func (h *AuthHandler) HandleRefresh(ctx context.Context, in *RefreshRequest) (*AuthResponse, error) {
 	if in.RefreshToken == "" {
 		return nil, httperr.Map(apperr.NewUnauthorizedError("refresh token required"))
@@ -99,10 +115,16 @@ func refreshCookie(token string) http.Cookie {
 	return http.Cookie{
 		Name:     "refresh_token",
 		Value:    token,
-		Path:     "/auth/refresh",
+		Path:     "/auth",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   15 * 24 * 60 * 60,
 	}
+}
+
+func clearRefreshCookie() http.Cookie {
+	c := refreshCookie("")
+	c.MaxAge = -1
+	return c
 }
