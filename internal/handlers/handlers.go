@@ -44,8 +44,8 @@ func Register(api huma.API, d Deps) {
 	tasks.NewTaskHandler(d.Tasks).Register(protected)
 	tips.NewTipHandler(d.Tips).Register(protected)
 
-	// auth routes stay on root api and remain public
-	auth.NewAuthHandler(d.Auth).Register(api)
+	// auth routes stay on root api and remain public (except /auth/me)
+	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
 }
 
 func Config() huma.Config {

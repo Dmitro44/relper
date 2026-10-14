@@ -35,6 +35,10 @@ type LogoutResponse struct {
 	ClearCookie http.Cookie `header:"Set-Cookie"`
 }
 
+type MeResponse struct {
+	Body *dto.UserResponse
+}
+
 type AuthReponseBody struct {
 	User        *dto.UserResponse `json:"user"`
 	AccessToken string            `json:"access_token"`

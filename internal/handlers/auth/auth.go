@@ -4,29 +4,33 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/authn"
 	"github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	"github.com/Dmitro44/relper/internal/handlers/users"
 	"github.com/Dmitro44/relper/internal/services/auth"
+	usersvc "github.com/Dmitro44/relper/internal/services/users"
 	"github.com/danielgtaylor/huma/v2"
 )
 
 type AuthHandler struct {
-	svc *auth.AuthService
+	svc     *auth.AuthService
+	userSvc *usersvc.UserService
 }
 
-func NewAuthHandler(svc *auth.AuthService) *AuthHandler {
+func NewAuthHandler(svc *auth.AuthService, userSvc *usersvc.UserService) *AuthHandler {
 	return &AuthHandler{
-		svc: svc,
+		svc:     svc,
+		userSvc: userSvc,
 	}
 }
 
-func (h *AuthHandler) Register(api huma.API) {
-	huma.Post(api, "/auth/login", h.HandleLogin)
-	huma.Post(api, "/auth/refresh", h.HandleRefresh)
+func (h *AuthHandler) Register(public huma.API, protected huma.API) {
+	huma.Post(public, "/auth/login", h.HandleLogin)
+	huma.Post(public, "/auth/refresh", h.HandleRefresh)
 
-	huma.Register(api, huma.Operation{
+	huma.Register(public, huma.Operation{
 		OperationID:   "register-user",
 		Method:        http.MethodPost,
 		Path:          "/auth/register",
@@ -34,13 +38,15 @@ func (h *AuthHandler) Register(api huma.API) {
 		DefaultStatus: http.StatusCreated,
 	}, h.HandleRegister)
 
-	huma.Register(api, huma.Operation{
+	huma.Register(public, huma.Operation{
 		OperationID:   "logout",
 		Method:        http.MethodPost,
 		Path:          "/auth/logout",
 		Summary:       "Logout",
 		DefaultStatus: http.StatusNoContent,
 	}, h.HandleLogout)
+
+	huma.Get(protected, "/auth/me", h.HandleMe)
 }
 
 func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (*AuthResponse, error) {
@@ -93,6 +99,20 @@ func (h *AuthHandler) HandleLogout(ctx context.Context, in *LogoutRequest) (*Log
 	}
 
 	return &LogoutResponse{ClearCookie: clearRefreshCookie()}, nil
+}
+
+func (h *AuthHandler) HandleMe(ctx context.Context, _ *struct{}) (*MeResponse, error) {
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(apperr.NewUnauthorizedError("unauthenticated"))
+	}
+
+	u, err := h.userSvc.GetByID(ctx, userID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &MeResponse{Body: users.MapUserToDto(u)}, nil
 }
 
 func (h *AuthHandler) HandleRefresh(ctx context.Context, in *RefreshRequest) (*AuthResponse, error) {
