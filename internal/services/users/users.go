@@ -22,10 +22,11 @@ func NewUserService(repo usersrepo.Repository) *UserService {
 }
 
 type CreateInput struct {
-	Email    string
-	Nickname string
-	Habits   []string
-	Contacts userentity.Contacts
+	Email        string
+	PasswordHash []byte
+	Nickname     string
+	Habits       []string
+	Contacts     userentity.Contacts
 }
 
 type UpdateInput struct {
@@ -47,12 +48,25 @@ func (u *UserService) GetByID(ctx context.Context, id uuid.UUID) (*userentity.Us
 	return userEntity, nil
 }
 
+func (u *UserService) GetByEmail(ctx context.Context, email string) (*userentity.User, error) {
+	userEntity, err := u.repo.GetByEmail(ctx, userentity.NormalizeEmail(email))
+	if err != nil {
+		if errors.Is(err, usersrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("user by email not found ")
+		}
+		return nil, err
+	}
+
+	return userEntity, nil
+}
+
 func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentity.User, error) {
 	userEntity, err := u.repo.Create(ctx, usersrepo.CreateInput{
-		Email:    input.Email,
-		Nickname: input.Nickname,
-		Habits:   input.Habits,
-		Contacts: input.Contacts,
+		Email:        userentity.NormalizeEmail(input.Email),
+		PasswordHash: input.PasswordHash,
+		Nickname:     input.Nickname,
+		Habits:       input.Habits,
+		Contacts:     input.Contacts,
 	})
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create user", err)
@@ -62,7 +76,15 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 	return userEntity, nil
 }
 
-func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*userentity.User, error) {
+func (u *UserService) Update(ctx context.Context, id, callerID uuid.UUID, input UpdateInput) (*userentity.User, error) {
+	if id != callerID {
+		return nil, apperr.NewForbiddenError("cannot modify another user")
+	}
+	if input.Email != nil {
+		normEmail := userentity.NormalizeEmail(*input.Email)
+		input.Email = &normEmail
+	}
+
 	userEntity, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{
 		Email:    input.Email,
 		Nickname: input.Nickname,
@@ -80,7 +102,11 @@ func (u *UserService) Update(ctx context.Context, id uuid.UUID, input UpdateInpu
 	return userEntity, nil
 }
 
-func (u *UserService) Delete(ctx context.Context, id uuid.UUID) error {
+func (u *UserService) Delete(ctx context.Context, id, callerID uuid.UUID) error {
+	if id != callerID {
+		return apperr.NewForbiddenError("cannot delete another user")
+	}
+
 	err := u.repo.Delete(ctx, id)
 	if err != nil {
 		if errors.Is(err, usersrepo.ErrNotFound) {

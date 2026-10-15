@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tasksvc "github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/danielgtaylor/huma/v2"
@@ -48,9 +50,13 @@ func (h *TaskHandler) HandleGetByID(ctx context.Context, in *GetTaskRequest) (*T
 }
 
 func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (*TaskResponse, error) {
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
 	t, err := h.svc.Create(ctx, tasksvc.CreateInput{
 		LocationID:  in.Body.LocationID,
-		UserID:      in.Body.UserID,
+		UserID:      userID,
 		Title:       in.Body.Title,
 		Description: in.Body.Description,
 		PlaceID:     in.Body.PlaceID,
@@ -64,9 +70,12 @@ func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (
 }
 
 func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (*TaskResponse, error) {
-	t, err := h.svc.Update(ctx, in.ID, tasksvc.UpdateInput{
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	t, err := h.svc.Update(ctx, in.ID, userID, tasksvc.UpdateInput{
 		LocationID:  in.Body.LocationID,
-		UserID:      in.Body.UserID,
 		Title:       in.Body.Title,
 		Description: in.Body.Description,
 		PlaceID:     in.Body.PlaceID,
@@ -80,7 +89,11 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 }
 
 func (h *TaskHandler) HandleDelete(ctx context.Context, in *DeleteTaskRequest) (*struct{}, error) {
-	err := h.svc.Delete(ctx, in.ID)
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	err := h.svc.Delete(ctx, in.ID, userID)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

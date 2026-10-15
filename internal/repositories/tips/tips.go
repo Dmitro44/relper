@@ -10,8 +10,8 @@ import (
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
 	Create(ctx context.Context, input CreateInput) (*tip.Tip, error)
-	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*tip.Tip, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*tip.Tip, error)
+	Delete(ctx context.Context, id, userID uuid.UUID) error
 	Upvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
 	RemoveUpvote(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
 }
@@ -27,7 +27,6 @@ type CreateInput struct {
 
 type UpdateInput struct {
 	LocationID *uuid.UUID
-	UserID     *uuid.UUID
 	Category   *string
 	Title      *string
 	Content    *string

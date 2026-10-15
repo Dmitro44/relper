@@ -7,6 +7,7 @@ import (
 type ErrorCode string
 
 const (
+	ErrorCodeConflict     ErrorCode = "CONFLICT"
 	ErrorCodeNotFound     ErrorCode = "NOT_FOUND"
 	ErrorCodeForbidden    ErrorCode = "FORBIDDEN"
 	ErrorCodeInternal     ErrorCode = "INTERNAL_ERROR"
@@ -38,6 +39,10 @@ func NewBadRequestError(message string) *AppError {
 
 func NewUnauthorizedError(message string) *AppError {
 	return New(ErrorCodeUnauthorized, message)
+}
+
+func NewConflictError(message string) *AppError {
+	return New(ErrorCodeConflict, message)
 }
 
 func (e *AppError) Error() string {

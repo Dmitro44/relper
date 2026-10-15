@@ -14,10 +14,12 @@ import (
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places/pgx"
+	reftokrepo "github.com/Dmitro44/relper/internal/repositories/refreshtokens/pgx"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags/pgx"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips/pgx"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users/pgx"
+	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/Dmitro44/relper/internal/services/comments"
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/Dmitro44/relper/internal/services/places"
@@ -25,6 +27,7 @@ import (
 	"github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/Dmitro44/relper/internal/services/tips"
 	userservice "github.com/Dmitro44/relper/internal/services/users"
+	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -47,11 +50,17 @@ func main() {
 	}
 
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
+	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool))
+	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg)
+
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
 
-	handlers.Register(app, handlers.Deps{
-		Users:     userservice.NewUserService(usersrepo.NewUsersRepo(pool)),
+	api := humafiber.New(app, handlers.Config())
+
+	handlers.Register(api, handlers.Deps{
+		Users:     userService,
+		Auth:      authService,
 		Comments:  comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool)),
 		Locations: locationService,
 		Places:    places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService),

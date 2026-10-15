@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/handlers/auth"
 	"github.com/Dmitro44/relper/internal/handlers/comments"
 	"github.com/Dmitro44/relper/internal/handlers/locations"
 	"github.com/Dmitro44/relper/internal/handlers/places"
@@ -8,6 +10,7 @@ import (
 	"github.com/Dmitro44/relper/internal/handlers/tasks"
 	"github.com/Dmitro44/relper/internal/handlers/tips"
 	"github.com/Dmitro44/relper/internal/handlers/users"
+	authsvc "github.com/Dmitro44/relper/internal/services/auth"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
 	locationsvc "github.com/Dmitro44/relper/internal/services/locations"
 	placesvc "github.com/Dmitro44/relper/internal/services/places"
@@ -16,12 +19,11 @@ import (
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
 	usersvc "github.com/Dmitro44/relper/internal/services/users"
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
-	"github.com/gofiber/fiber/v3"
 )
 
 type Deps struct {
 	Users     *usersvc.UserService
+	Auth      *authsvc.AuthService
 	Comments  *commentsvc.CommentService
 	Locations *locationsvc.LocationService
 	Places    *placesvc.PlaceService
@@ -30,10 +32,33 @@ type Deps struct {
 	Tips      *tipsvc.TipService
 }
 
-func Register(app *fiber.App, d Deps) {
+func Register(api huma.API, d Deps) {
+	protected := huma.NewGroup(api)
+	protected.UseMiddleware(authn.Middleware(api, d.Auth))
+
+	users.NewUserHandler(d.Users).Register(protected)
+	comments.NewCommentHandler(d.Comments).Register(protected)
+	locations.NewLocationHandler(d.Locations).Register(protected)
+	places.NewPlaceHandler(d.Places).Register(protected)
+	tags.NewTagHandler(d.Tags).Register(protected)
+	tasks.NewTaskHandler(d.Tasks).Register(protected)
+	tips.NewTipHandler(d.Tips).Register(protected)
+
+	// auth routes stay on root api and remain public (except /auth/me)
+	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
+}
+
+func Config() huma.Config {
 	config := huma.DefaultConfig("Relper API", "0.1.0")
 	config.DocsRenderer = huma.DocsRendererScalar
-	config.OpenAPI.Tags = []*huma.Tag{
+	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{
+		"bearerAuth": {
+			Type:         "http",
+			Scheme:       "bearer",
+			BearerFormat: "JWT",
+		},
+	}
+	config.Tags = []*huma.Tag{
 		{Name: "Users"},
 		{Name: "Comments"},
 		{Name: "Locations"},
@@ -43,13 +68,5 @@ func Register(app *fiber.App, d Deps) {
 		{Name: "Tips"},
 	}
 
-	api := humafiber.New(app, config)
-
-	users.NewUserHandler(d.Users).Register(api)
-	comments.NewCommentHandler(d.Comments).Register(api)
-	locations.NewLocationHandler(d.Locations).Register(api)
-	places.NewPlaceHandler(d.Places).Register(api)
-	tags.NewTagHandler(d.Tags).Register(api)
-	tasks.NewTaskHandler(d.Tasks).Register(api)
-	tips.NewTipHandler(d.Tips).Register(api)
+	return config
 }

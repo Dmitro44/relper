@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
 	"github.com/danielgtaylor/huma/v2"
@@ -48,13 +50,16 @@ func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentReques
 }
 
 func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequest) (*CommentResponse, error) {
-	createInput := commentsvc.CreateInput{
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	u, err := h.svc.Create(ctx, commentsvc.CreateInput{
 		TargetType: in.Body.TargetType,
 		TargetID:   in.Body.TargetID,
-		UserID:     in.Body.UserID,
+		UserID:     userID,
 		Content:    in.Body.Content,
-	}
-	u, err := h.svc.Create(ctx, createInput)
+	})
 	if err != nil {
 		return nil, httperr.Map(err)
 	}
@@ -63,14 +68,17 @@ func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequ
 }
 
 func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequest) (*CommentResponse, error) {
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
 	updateInput := commentsvc.UpdateInput{
 		TargetType: in.Body.TargetType,
 		TargetID:   in.Body.TargetID,
-		UserID:     in.Body.UserID,
 		Content:    in.Body.Content,
 	}
 
-	u, err := h.svc.Update(ctx, in.ID, updateInput)
+	u, err := h.svc.Update(ctx, in.ID, userID, updateInput)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}
@@ -79,7 +87,11 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 }
 
 func (h *CommentHandler) HandleDelete(ctx context.Context, in *DeleteCommentRequest) (*struct{}, error) {
-	err := h.svc.Delete(ctx, in.ID)
+	userID, ok := authn.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	err := h.svc.Delete(ctx, in.ID, userID)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}
