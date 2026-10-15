@@ -49,7 +49,7 @@ func (u *UserService) GetByID(ctx context.Context, id uuid.UUID) (*userentity.Us
 }
 
 func (u *UserService) GetByEmail(ctx context.Context, email string) (*userentity.User, error) {
-	userEntity, err := u.repo.GetByEmail(ctx, email)
+	userEntity, err := u.repo.GetByEmail(ctx, userentity.NormalizeEmail(email))
 	if err != nil {
 		if errors.Is(err, usersrepo.ErrNotFound) {
 			return nil, apperr.NewNotFoundError("user by email not found ")
@@ -62,7 +62,7 @@ func (u *UserService) GetByEmail(ctx context.Context, email string) (*userentity
 
 func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentity.User, error) {
 	userEntity, err := u.repo.Create(ctx, usersrepo.CreateInput{
-		Email:        input.Email,
+		Email:        userentity.NormalizeEmail(input.Email),
 		PasswordHash: input.PasswordHash,
 		Nickname:     input.Nickname,
 		Habits:       input.Habits,
@@ -79,6 +79,10 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 func (u *UserService) Update(ctx context.Context, id, callerID uuid.UUID, input UpdateInput) (*userentity.User, error) {
 	if id != callerID {
 		return nil, apperr.NewForbiddenError("cannot modify another user")
+	}
+	if input.Email != nil {
+		normEmail := userentity.NormalizeEmail(*input.Email)
+		input.Email = &normEmail
 	}
 
 	userEntity, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{

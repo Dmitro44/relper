@@ -1,6 +1,7 @@
 package user
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,4 +20,8 @@ type User struct {
 type Contacts struct {
 	Telegram string `json:"telegram,omitempty"`
 	Email    string `json:"email,omitempty"`
+}
+
+func NormalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }
