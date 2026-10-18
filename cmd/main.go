@@ -14,6 +14,7 @@ import (
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places/pgx"
+	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles/pgx"
 	reftokrepo "github.com/Dmitro44/relper/internal/repositories/refreshtokens/pgx"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags/pgx"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
@@ -50,7 +51,7 @@ func main() {
 	}
 
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
-	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool))
+	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool), rolesrepo.NewRolesRepo(pool))
 	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg)
 
 	app := fiber.New()
