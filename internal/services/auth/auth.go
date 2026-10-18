@@ -19,6 +19,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Claims struct {
+	jwt.RegisteredClaims
+	Roles []string `json:"roles,omitempty"`
+}
+
 type TokenPair struct {
 	AccessToken  string
 	RefreshToken string
@@ -147,7 +152,7 @@ func (s *AuthService) Refresh(ctx context.Context, token string) (*TokenPair, er
 }
 
 func (s *AuthService) generateTokenPair(ctx context.Context, userID uuid.UUID) (*TokenPair, error) {
-	accessToken, err := s.generateAccessToken(userID)
+	accessToken, err := s.generateAccessToken(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +194,8 @@ func (s *AuthService) generateRefreshToken(ctx context.Context, userID uuid.UUID
 	return token, nil
 }
 
-func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*jwt.RegisteredClaims, error) {
-	var claims jwt.RegisteredClaims
+func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*Claims, error) {
+	var claims Claims
 	keyFunc := func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, apperr.NewUnauthorizedError("jwt token is invalid")
@@ -209,12 +214,18 @@ func (s *AuthService) ValidateAccessToken(ctx context.Context, token string) (*j
 	return &claims, nil
 }
 
-func (s *AuthService) generateAccessToken(userID uuid.UUID) (string, error) {
+func (s *AuthService) generateAccessToken(ctx context.Context, userID uuid.UUID) (string, error) {
+	roles, err := s.userservice.GetRoles(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+
 	now := time.Now()
-	claims := jwt.RegisteredClaims{
+	claims := Claims{
 		Subject:   userID.String(),
 		IssuedAt:  jwt.NewNumericDate(now),
 		ExpiresAt: jwt.NewNumericDate(now.Add(15 * time.Minute)),
+		Roles:     roles,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

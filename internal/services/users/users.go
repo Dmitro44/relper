@@ -7,17 +7,20 @@ import (
 
 	userentity "github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
+	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users"
 	"github.com/google/uuid"
 )
 
 type UserService struct {
-	repo usersrepo.Repository
+	repo      usersrepo.Repository
+	rolesRepo rolesrepo.Repository
 }
 
-func NewUserService(repo usersrepo.Repository) *UserService {
+func NewUserService(repo usersrepo.Repository, rolesRepo rolesrepo.Repository) *UserService {
 	return &UserService{
-		repo: repo,
+		repo:      repo,
+		rolesRepo: rolesRepo,
 	}
 }
 
@@ -71,6 +74,10 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create user", err)
 	}
+	err = u.rolesRepo.Add(ctx, userEntity.ID, []string{"user"})
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to add role to user", err)
+	}
 	slog.InfoContext(ctx, "user created", "user_id", userEntity.ID)
 
 	return userEntity, nil
@@ -117,4 +124,33 @@ func (u *UserService) Delete(ctx context.Context, id, callerID uuid.UUID) error 
 	slog.InfoContext(ctx, "user deleted", "user_id", id)
 
 	return nil
+}
+
+func (u *UserService) GetRoles(ctx context.Context, id uuid.UUID) ([]string, error) {
+	roles, err := u.rolesRepo.GetByUserID(ctx, id)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to get user roles", err)
+	}
+
+	return roles, nil
+}
+
+func (u *UserService) SetRoles(ctx context.Context, id uuid.UUID, codes []string) ([]string, error) {
+	if _, err := u.repo.GetByID(ctx, id); err != nil {
+		if errors.Is(err, usersrepo.ErrNotFound) {
+			return nil, apperr.NewNotFoundError("user not found")
+		}
+		return nil, apperr.NewInternalError("failed to get user", err)
+	}
+
+	err := u.rolesRepo.ReplaceForUser(ctx, id, codes)
+	if err != nil {
+		if errors.Is(err, rolesrepo.ErrUnknownRole) {
+			return nil, apperr.NewBadRequestError("unknown role code")
+		}
+		return nil, apperr.NewInternalError("failed to set user roles", err)
+	}
+	slog.InfoContext(ctx, "user roles set", "user_id", id, "roles", codes)
+
+	return u.GetRoles(ctx, id)
 }
