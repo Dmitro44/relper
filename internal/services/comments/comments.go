@@ -89,8 +89,8 @@ func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, input
 	return commentEntity, nil
 }
 
-func (c *CommentService) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	err := c.repo.Delete(ctx, id, userID)
+func (c *CommentService) Delete(ctx context.Context, id, callerID uuid.UUID, admin bool) error {
+	err := c.repo.Delete(ctx, id, callerID, admin)
 	if err != nil {
 		if errors.Is(err, commentsrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("comment not found")

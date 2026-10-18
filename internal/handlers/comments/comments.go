@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
@@ -50,7 +50,7 @@ func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentReques
 }
 
 func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequest) (*CommentResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -68,7 +68,7 @@ func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequ
 }
 
 func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequest) (*CommentResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -87,11 +87,11 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 }
 
 func (h *CommentHandler) HandleDelete(ctx context.Context, in *DeleteCommentRequest) (*struct{}, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
-	err := h.svc.Delete(ctx, in.ID, userID)
+	err := h.svc.Delete(ctx, in.ID, userID, auth.HasRole(ctx, "admin"))
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

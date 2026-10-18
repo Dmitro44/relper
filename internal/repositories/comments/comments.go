@@ -11,7 +11,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*comment.Comment, error)
 	Create(ctx context.Context, input CreateInput) (*comment.Comment, error)
 	Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*comment.Comment, error)
-	Delete(ctx context.Context, id, userID uuid.UUID) error
+	Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error
 }
 
 type CreateInput struct {

@@ -1,4 +1,4 @@
-package authn
+package auth
 
 import (
 	"context"
@@ -12,7 +12,10 @@ import (
 
 type ctxKey uint8
 
-const userIDKey ctxKey = 0
+const (
+	userIDKey ctxKey = iota
+	rolesKey
+)
 
 func Middleware(api huma.API, svc *authsvc.AuthService) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
@@ -34,11 +37,18 @@ func Middleware(api huma.API, svc *authsvc.AuthService) func(huma.Context, func(
 			return
 		}
 
-		next(huma.WithValue(ctx, userIDKey, userID))
+		c := huma.WithValue(ctx, userIDKey, userID)
+		c = huma.WithValue(c, rolesKey, claims.Roles)
+		next(c)
 	}
 }
 
 func UserID(ctx context.Context) (uuid.UUID, bool) {
 	id, ok := ctx.Value(userIDKey).(uuid.UUID)
 	return id, ok
+}
+
+func Roles(ctx context.Context) []string {
+	roles, _ := ctx.Value(rolesKey).([]string)
+	return roles
 }
