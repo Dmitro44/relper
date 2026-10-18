@@ -112,7 +112,12 @@ func (h *AuthHandler) HandleMe(ctx context.Context, _ *struct{}) (*MeResponse, e
 		return nil, httperr.Map(err)
 	}
 
-	return &MeResponse{Body: users.MapUserToDto(u)}, nil
+	return &MeResponse{
+		Body: MeBody{
+			UserResponse: *users.MapUserToDto(u),
+			Roles:        auth.Roles(ctx),
+		},
+	}, nil
 }
 
 func (h *AuthHandler) HandleRefresh(ctx context.Context, in *RefreshRequest) (*AuthResponse, error) {

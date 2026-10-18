@@ -5,11 +5,16 @@ import (
 )
 
 type UserResponse struct {
-	ID       uuid.UUID
-	Email    string
-	Nickname string
-	Habits   []string
-	Contacts ContactsInput
+	ID       uuid.UUID      `json:"id"`
+	Email    string         `json:"email"`
+	Nickname string         `json:"nickname"`
+	Habits   []string       `json:"habits,omitempty"`
+	Contacts ContactsOutput `json:"contacts"`
+}
+
+type ContactsOutput struct {
+	Telegram string `json:"telegram,omitempty" doc:"Telegram handle"`
+	Email    string `json:"email,omitempty" doc:"Contact email"`
 }
 
 type ContactsInput struct {

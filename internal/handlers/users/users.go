@@ -33,7 +33,7 @@ func MapUserToDto(u *user.User) *dto.UserResponse {
 		Email:    u.Email,
 		Nickname: u.Nickname,
 		Habits:   u.Habits,
-		Contacts: dto.ContactsInput(u.Contacts),
+		Contacts: dto.ContactsOutput(u.Contacts),
 	}
 }
 
