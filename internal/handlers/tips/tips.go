@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
@@ -61,7 +61,7 @@ func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*Tip
 }
 
 func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*TipResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -81,7 +81,7 @@ func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*T
 }
 
 func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*TipResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -100,7 +100,7 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 }
 
 func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*struct{}, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}

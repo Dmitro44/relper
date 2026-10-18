@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/Dmitro44/relper/internal/authn"
+	authn "github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/handlers/auth"
 	"github.com/Dmitro44/relper/internal/handlers/comments"
 	"github.com/Dmitro44/relper/internal/handlers/locations"
@@ -36,7 +36,10 @@ func Register(api huma.API, d Deps) {
 	protected := huma.NewGroup(api)
 	protected.UseMiddleware(authn.Middleware(api, d.Auth))
 
-	users.NewUserHandler(d.Users).Register(protected)
+	admin := huma.NewGroup(protected)
+	admin.UseMiddleware(authn.RequireRole(api, "admin"))
+
+	users.NewUserHandler(d.Users).Register(protected, admin)
 	comments.NewCommentHandler(d.Comments).Register(protected)
 	locations.NewLocationHandler(d.Locations).Register(protected)
 	places.NewPlaceHandler(d.Places).Register(protected)
