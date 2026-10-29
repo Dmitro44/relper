@@ -27,18 +27,38 @@ func NewAuthHandler(svc *auth.AuthService, userSvc *usersvc.UserService) *AuthHa
 }
 
 func (h *AuthHandler) Register(public huma.API, protected huma.API) {
-	huma.Post(public, "/auth/login", h.HandleLogin)
-	huma.Post(public, "/auth/refresh", h.HandleRefresh)
-
 	huma.Register(public, huma.Operation{
 		OperationID:   "register-user",
 		Method:        http.MethodPost,
 		Path:          "/auth/register",
 		Summary:       "Register a user",
+		Tags:          []string{"Users"},
 		DefaultStatus: http.StatusCreated,
 	}, h.HandleRegister)
 
 	huma.Register(public, huma.Operation{
+		OperationID:   "login",
+		Method:        http.MethodPost,
+		Path:          "/auth/login",
+		Summary:       "Login",
+		Tags:          []string{"Auth"},
+		DefaultStatus: http.StatusCreated,
+	}, h.HandleLogin)
+
+	grp := huma.NewGroup(protected)
+	grp.UseSimpleModifier(func(op *huma.Operation) {
+		op.Tags = []string{"Auth"}
+	})
+
+	huma.Register(grp, huma.Operation{
+		OperationID:   "refresh",
+		Method:        http.MethodPost,
+		Path:          "/auth/refresh",
+		Summary:       "Refresh session",
+		DefaultStatus: http.StatusCreated,
+	}, h.HandleRefresh)
+
+	huma.Register(grp, huma.Operation{
 		OperationID:   "logout",
 		Method:        http.MethodPost,
 		Path:          "/auth/logout",
@@ -46,7 +66,14 @@ func (h *AuthHandler) Register(public huma.API, protected huma.API) {
 		DefaultStatus: http.StatusNoContent,
 	}, h.HandleLogout)
 
-	huma.Get(protected, "/auth/me", h.HandleMe)
+	huma.Register(protected, huma.Operation{
+		OperationID:   "me",
+		Method:        http.MethodGet,
+		Path:          "/auth/me",
+		Summary:       "Get me",
+		Tags:          []string{"Auth"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleMe)
 }
 
 func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (*AuthResponse, error) {
