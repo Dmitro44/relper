@@ -90,8 +90,9 @@ func (p *Pgx) roleIDsByCode(ctx context.Context, tx pgx.Tx, codes []string) ([]u
 	}
 
 	query := `
-select id from roles 
-where code = any($1::text[])
+select r.id from roles r
+join unnest($1::text[]) as c(code)
+	on c.code = r.code
 `
 
 	rows, err := tx.Query(ctx, query, codes)
