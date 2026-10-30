@@ -20,23 +20,42 @@ func NewLocationHandler(svc *locationsvc.LocationService) *LocationHandler {
 	}
 }
 
-func (h *LocationHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Locations"}
-	})
+func (h *LocationHandler) Register(public, admin huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-location",
+		Method:        http.MethodGet,
+		Path:          "/locations/{id}",
+		Summary:       "Get a location",
+		Tags:          []string{"Locations"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/locations/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/locations/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/locations/{id}", h.HandleDelete)
-
-	huma.Register(grp, huma.Operation{
+	huma.Register(admin, huma.Operation{
 		OperationID:   "create-location",
 		Method:        http.MethodPost,
 		Path:          "/locations",
 		Summary:       "Create a location",
-		DefaultStatus: 201,
+		Tags:          []string{"Locations"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "update-location",
+		Method:        http.MethodPatch,
+		Path:          "/locations/{id}",
+		Summary:       "Update a location",
+		Tags:          []string{"Locations"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "delete-location",
+		Method:        http.MethodDelete,
+		Path:          "/locations/{id}",
+		Summary:       "Delete a location",
+		Tags:          []string{"Locations"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
 }
 
 func (h *LocationHandler) HandleGetByID(ctx context.Context, in *GetLocationRequest) (*LocationResponse, error) {

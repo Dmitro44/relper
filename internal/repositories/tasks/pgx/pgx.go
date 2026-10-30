@@ -77,8 +77,12 @@ returning id, location_id, user_id, title, description, place_id, done, created_
 	return &task, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, input tasks.UpdateInput) (*task.Task, error) {
-	updateBuilder := sq.Update("tasks").Where(squirrel.Eq{"id": id, "user_id": userID})
+func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input tasks.UpdateInput) (*task.Task, error) {
+	updateBuilder := sq.Update("tasks").Where(squirrel.Eq{"id": id})
+
+	if !admin {
+		updateBuilder = updateBuilder.Where(squirrel.Eq{"user_id": userID})
+	}
 
 	if input.LocationID != nil {
 		updateBuilder = updateBuilder.Set("location_id", input.LocationID)
@@ -119,13 +123,19 @@ func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, input tasks.Upda
 	return &task, nil
 }
 
-func (p *Pgx) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	query := `
-delete from tasks
-where id = $1 and user_id = $2
-`
+func (p *Pgx) Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error {
+	builder := sq.Delete("tasks").Where(squirrel.Eq{"id": id})
 
-	tag, err := p.pool.Exec(ctx, query, id, userID)
+	if !admin {
+		builder = builder.Where(squirrel.Eq{"user_id": userID})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	tag, err := p.pool.Exec(ctx, query, args...)
 	if err != nil {
 		return err
 	}

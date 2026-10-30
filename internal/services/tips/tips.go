@@ -67,8 +67,8 @@ func (t *TipService) Create(ctx context.Context, input CreateInput) (*tip.Tip, e
 	return tipEntity, nil
 }
 
-func (t *TipService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*tip.Tip, error) {
-	tipEntity, err := t.repo.Update(ctx, id, userID, tipsrepo.UpdateInput{
+func (t *TipService) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*tip.Tip, error) {
+	tipEntity, err := t.repo.Update(ctx, id, userID, admin, tipsrepo.UpdateInput{
 		LocationID: input.LocationID,
 		Category:   input.Category,
 		Title:      input.Title,
@@ -86,8 +86,8 @@ func (t *TipService) Update(ctx context.Context, id, userID uuid.UUID, input Upd
 	return tipEntity, nil
 }
 
-func (t *TipService) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	err := t.repo.Delete(ctx, id, userID)
+func (t *TipService) Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error {
+	err := t.repo.Delete(ctx, id, userID, admin)
 	if err != nil {
 		if errors.Is(err, tipsrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("tip not found")

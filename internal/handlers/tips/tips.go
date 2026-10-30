@@ -21,34 +21,60 @@ func NewTipHandler(svc *tipsvc.TipService) *TipHandler {
 	}
 }
 
-func (h *TipHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Tips"}
-	})
+func (h *TipHandler) Register(public, protected huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-tip",
+		Method:        http.MethodGet,
+		Path:          "/tips/{id}",
+		Summary:       "Get a tip",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/tips/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/tips/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/tips/{id}", h.HandleDelete)
-	huma.Post(grp, "/tips/{id}/upvote", h.HandleUpvote, func(o *huma.Operation) {
-		o.Summary = "Add an upvote"
-	})
-
-	huma.Register(grp, huma.Operation{
-		OperationID:   "remove-tip-upvote",
-		Method:        http.MethodDelete,
-		Path:          "/tips/{id}/upvote",
-		Summary:       "Remove upvote",
-		DefaultStatus: 200,
-	}, h.HandleRemoveUpvote)
-
-	huma.Register(grp, huma.Operation{
+	huma.Register(protected, huma.Operation{
 		OperationID:   "create-tip",
 		Method:        http.MethodPost,
 		Path:          "/tips",
 		Summary:       "Create a tip",
-		DefaultStatus: 201,
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "update-tip",
+		Method:        http.MethodPatch,
+		Path:          "/tips/{id}",
+		Summary:       "Update a tip",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "delete-tip",
+		Method:        http.MethodDelete,
+		Path:          "/tips/{id}",
+		Summary:       "Delete a tip",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "add-tip-upvote",
+		Method:        http.MethodPost,
+		Path:          "/tips/{id}/upvote",
+		Summary:       "Add an upvote",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpvote)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "remove-tip-upvote",
+		Method:        http.MethodDelete,
+		Path:          "/tips/{id}/upvote",
+		Summary:       "Remove upvote",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleRemoveUpvote)
 }
 
 func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*TipResponse, error) {
@@ -85,7 +111,7 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
-	t, err := h.svc.Update(ctx, in.ID, userID, tipsvc.UpdateInput{
+	t, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), tipsvc.UpdateInput{
 		LocationID: in.Body.LocationID,
 		Category:   in.Body.Category,
 		Title:      in.Body.Title,
@@ -104,7 +130,7 @@ func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*s
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
-	err := h.svc.Delete(ctx, in.ID, userID)
+	err := h.svc.Delete(ctx, in.ID, userID, auth.HasRole(ctx, "admin"))
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

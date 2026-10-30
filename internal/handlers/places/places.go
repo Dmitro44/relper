@@ -20,22 +20,41 @@ func NewPlaceHandler(svc *placesvc.PlaceService) *PlaceHandler {
 	}
 }
 
-func (h *PlaceHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Places"}
-	})
+func (h *PlaceHandler) Register(public, admin huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-place",
+		Method:        http.MethodGet,
+		Path:          "/places/{id}",
+		Summary:       "Get a place",
+		Tags:          []string{"Places"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/places/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/places/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/places/{id}", h.HandleDelete)
+	huma.Register(admin, huma.Operation{
+		OperationID:   "update-place",
+		Method:        http.MethodPatch,
+		Path:          "/places/{id}",
+		Summary:       "Update a place",
+		Tags:          []string{"Places"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
 
-	huma.Register(grp, huma.Operation{
+	huma.Register(admin, huma.Operation{
+		OperationID:   "delete-place",
+		Method:        http.MethodDelete,
+		Path:          "/places/{id}",
+		Summary:       "Delete a place",
+		Tags:          []string{"Places"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
+
+	huma.Register(admin, huma.Operation{
 		OperationID:   "create-place",
 		Method:        http.MethodPost,
 		Path:          "/places",
 		Summary:       "Create a place",
-		DefaultStatus: 201,
+		Tags:          []string{"Places"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
 }
 

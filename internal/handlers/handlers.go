@@ -40,12 +40,12 @@ func Register(api huma.API, d Deps) {
 	admin.UseMiddleware(authn.RequireRole(api, "admin"))
 
 	users.NewUserHandler(d.Users).Register(protected, admin)
-	comments.NewCommentHandler(d.Comments).Register(protected)
-	locations.NewLocationHandler(d.Locations).Register(protected)
-	places.NewPlaceHandler(d.Places).Register(protected)
-	tags.NewTagHandler(d.Tags).Register(protected)
+	comments.NewCommentHandler(d.Comments).Register(api, protected)
+	locations.NewLocationHandler(d.Locations).Register(api, admin)
+	places.NewPlaceHandler(d.Places).Register(api, admin)
+	tags.NewTagHandler(d.Tags).Register(api, admin)
 	tasks.NewTaskHandler(d.Tasks).Register(protected)
-	tips.NewTipHandler(d.Tips).Register(protected)
+	tips.NewTipHandler(d.Tips).Register(api, protected)
 
 	// auth routes stay on root api and remain public (except /auth/me)
 	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
@@ -62,6 +62,7 @@ func Config() huma.Config {
 		},
 	}
 	config.Tags = []*huma.Tag{
+		{Name: "Auth"},
 		{Name: "Users"},
 		{Name: "Comments"},
 		{Name: "Locations"},

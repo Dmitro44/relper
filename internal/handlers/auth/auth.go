@@ -28,51 +28,45 @@ func NewAuthHandler(svc *authsvc.AuthService, userSvc *usersvc.UserService) *Aut
 
 func (h *AuthHandler) Register(public huma.API, protected huma.API) {
 	huma.Register(public, huma.Operation{
+		OperationID: "login-user",
+		Method:      http.MethodPost,
+		Path:        "/auth/login",
+		Summary:     "Login",
+		Tags:        []string{"Auth"},
+	}, h.HandleLogin)
+
+	huma.Register(public, huma.Operation{
+		OperationID: "refresh-token",
+		Method:      http.MethodPost,
+		Path:        "/auth/refresh",
+		Summary:     "Refresh access token",
+		Tags:        []string{"Auth"},
+	}, h.HandleRefresh)
+
+	huma.Register(public, huma.Operation{
 		OperationID:   "register-user",
 		Method:        http.MethodPost,
 		Path:          "/auth/register",
 		Summary:       "Register a user",
-		Tags:          []string{"Users"},
+		Tags:          []string{"Auth"},
 		DefaultStatus: http.StatusCreated,
 	}, h.HandleRegister)
 
 	huma.Register(public, huma.Operation{
-		OperationID:   "login",
-		Method:        http.MethodPost,
-		Path:          "/auth/login",
-		Summary:       "Login",
-		Tags:          []string{"Auth"},
-		DefaultStatus: http.StatusCreated,
-	}, h.HandleLogin)
-
-	grp := huma.NewGroup(protected)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Auth"}
-	})
-
-	huma.Register(grp, huma.Operation{
-		OperationID:   "refresh",
-		Method:        http.MethodPost,
-		Path:          "/auth/refresh",
-		Summary:       "Refresh session",
-		DefaultStatus: http.StatusCreated,
-	}, h.HandleRefresh)
-
-	huma.Register(grp, huma.Operation{
 		OperationID:   "logout",
 		Method:        http.MethodPost,
 		Path:          "/auth/logout",
 		Summary:       "Logout",
+		Tags:          []string{"Auth"},
 		DefaultStatus: http.StatusNoContent,
 	}, h.HandleLogout)
 
 	huma.Register(protected, huma.Operation{
-		OperationID:   "me",
-		Method:        http.MethodGet,
-		Path:          "/auth/me",
-		Summary:       "Get me",
-		Tags:          []string{"Auth"},
-		DefaultStatus: http.StatusOK,
+		OperationID: "get-current-user",
+		Method:      http.MethodGet,
+		Path:        "/auth/me",
+		Summary:     "Get the current user",
+		Tags:        []string{"Auth"},
 	}, h.HandleMe)
 }
 

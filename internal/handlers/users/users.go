@@ -38,14 +38,32 @@ func MapUserToDto(u *user.User) *dto.UserResponse {
 }
 
 func (h *UserHandler) Register(protected, admin huma.API) {
-	grp := huma.NewGroup(protected)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Users"}
-	})
+	huma.Register(protected, huma.Operation{
+		OperationID:   "get-user",
+		Method:        http.MethodGet,
+		Path:          "/users/{id}",
+		Summary:       "Get a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/users/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/users/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/users/{id}", h.HandleDelete)
+	huma.Register(protected, huma.Operation{
+		OperationID:   "update-user",
+		Method:        http.MethodPatch,
+		Path:          "/users/{id}",
+		Summary:       "Update a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "delete-user",
+		Method:        http.MethodDelete,
+		Path:          "/users/{id}",
+		Summary:       "Delete a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
 
 	huma.Register(admin, huma.Operation{
 		OperationID:   "set-user-roles",

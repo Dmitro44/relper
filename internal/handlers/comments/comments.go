@@ -21,23 +21,42 @@ func NewCommentHandler(svc *commentsvc.CommentService) *CommentHandler {
 	}
 }
 
-func (h *CommentHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Comments"}
-	})
+func (h *CommentHandler) Register(public, protected huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-comment",
+		Method:        http.MethodGet,
+		Path:          "/comments/{id}",
+		Summary:       "Get a comment",
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/comments/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/comments/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/comments/{id}", h.HandleDelete)
-
-	huma.Register(grp, huma.Operation{
+	huma.Register(protected, huma.Operation{
 		OperationID:   "create-comment",
 		Method:        http.MethodPost,
 		Path:          "/comments",
 		Summary:       "Create a comment",
-		DefaultStatus: 201,
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "update-comment",
+		Method:        http.MethodPatch,
+		Path:          "/comments/{id}",
+		Summary:       "Update a comment",
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "delete-comment",
+		Method:        http.MethodDelete,
+		Path:          "/comments/{id}",
+		Summary:       "Delete a comment",
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
 }
 
 func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentRequest) (*CommentResponse, error) {
@@ -78,7 +97,7 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 		Content:    in.Body.Content,
 	}
 
-	u, err := h.svc.Update(ctx, in.ID, userID, updateInput)
+	u, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), updateInput)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

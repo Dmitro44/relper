@@ -75,8 +75,12 @@ returning id, target_type, target_id, user_id, content, created_at;
 	return &comment, nil
 }
 
-func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, input comments.UpdateInput) (*comment.Comment, error) {
-	updateBuilder := sq.Update("comments").Where(squirrel.Eq{"id": id, "user_id": userID})
+func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input comments.UpdateInput) (*comment.Comment, error) {
+	updateBuilder := sq.Update("comments").Where(squirrel.Eq{"id": id})
+
+	if !admin {
+		updateBuilder = updateBuilder.Where(squirrel.Eq{"user_id": userID})
+	}
 
 	if input.TargetType != nil {
 		updateBuilder = updateBuilder.Set("target_type", input.TargetType)
