@@ -148,6 +148,9 @@ func (u *UserService) SetRoles(ctx context.Context, id uuid.UUID, codes []string
 		if errors.Is(err, rolesrepo.ErrUnknownRole) {
 			return nil, apperr.NewBadRequestError("unknown role code")
 		}
+		if errors.Is(err, rolesrepo.ErrLastAdmin) {
+			return nil, apperr.NewConflictError("cannot remove the last admin role")
+		}
 		return nil, apperr.NewInternalError("failed to set user roles", err)
 	}
 	slog.InfoContext(ctx, "user roles set", "user_id", id, "roles", codes)

@@ -2,6 +2,9 @@ package pgx
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 
@@ -57,15 +60,52 @@ func (p *Pgx) ReplaceForUser(ctx context.Context, userID uuid.UUID, codes []stri
 	}
 	defer tx.Rollback(ctx)
 
+	query := `
+select id from roles
+where code = 'admin'
+for update
+`
+	var adminRoleID uuid.UUID
+	err = tx.QueryRow(ctx, query).Scan(&adminRoleID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return rolesrepo.ErrUnknownRole
+		}
+		return err
+	}
+
+	query = `
+select count(*) from user_roles
+where role_id = $1
+`
+	var admins int
+	err = tx.QueryRow(ctx, query, adminRoleID).Scan(&admins)
+	if err != nil {
+		return fmt.Errorf("count admin roles: %w", err)
+	}
+
+	query = `
+select exists(select 1 from user_roles where user_id = $1 and role_id = $2)
+`
+	var targetIsAdmin bool
+	err = tx.QueryRow(ctx, query, userID, adminRoleID).Scan(&targetIsAdmin)
+	if err != nil {
+		return fmt.Errorf("check target admin role: %w", err)
+	}
+
+	if targetIsAdmin && !slices.Contains(codes, "admin") && admins <= 1 {
+		return rolesrepo.ErrLastAdmin
+	}
+
 	roleIDs, err := p.roleIDsByCode(ctx, tx, codes)
 	if err != nil {
 		return err
 	}
-	query := `
+
+	query = `
 delete from user_roles
 where user_id = $1
 `
-
 	if _, err = tx.Exec(ctx, query, userID); err != nil {
 		return err
 	}
