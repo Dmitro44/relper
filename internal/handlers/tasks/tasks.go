@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	tasksvc "github.com/Dmitro44/relper/internal/services/tasks"
@@ -21,27 +21,50 @@ func NewTaskHandler(svc *tasksvc.TaskService) *TaskHandler {
 	}
 }
 
-func (h *TaskHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Tasks"}
-	})
+func (h *TaskHandler) Register(public huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-task",
+		Method:        http.MethodGet,
+		Path:          "/tasks/{id}",
+		Summary:       "Get a task",
+		Tags:          []string{"Tasks"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/tasks/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/tasks/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/tasks/{id}", h.HandleDelete)
-
-	huma.Register(grp, huma.Operation{
+	huma.Register(public, huma.Operation{
 		OperationID:   "create-task",
 		Method:        http.MethodPost,
 		Path:          "/tasks",
 		Summary:       "Create a task",
-		DefaultStatus: 201,
+		Tags:          []string{"Tasks"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
+
+	huma.Register(public, huma.Operation{
+		OperationID:   "update-task",
+		Method:        http.MethodPatch,
+		Path:          "/tasks/{id}",
+		Summary:       "Update a task",
+		Tags:          []string{"Tasks"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(public, huma.Operation{
+		OperationID:   "delete-task",
+		Method:        http.MethodDelete,
+		Path:          "/tasks/{id}",
+		Summary:       "Delete a task",
+		Tags:          []string{"Tasks"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
 }
 
 func (h *TaskHandler) HandleGetByID(ctx context.Context, in *GetTaskRequest) (*TaskResponse, error) {
-	t, err := h.svc.GetByID(ctx, in.ID)
+	userID, ok := auth.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+	t, err := h.svc.GetByID(ctx, in.ID, userID, auth.HasRole(ctx, "admin"))
 	if err != nil {
 		return nil, httperr.Map(err)
 	}
@@ -50,7 +73,7 @@ func (h *TaskHandler) HandleGetByID(ctx context.Context, in *GetTaskRequest) (*T
 }
 
 func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (*TaskResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -70,11 +93,11 @@ func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (
 }
 
 func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (*TaskResponse, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
-	t, err := h.svc.Update(ctx, in.ID, userID, tasksvc.UpdateInput{
+	t, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), tasksvc.UpdateInput{
 		LocationID:  in.Body.LocationID,
 		Title:       in.Body.Title,
 		Description: in.Body.Description,
@@ -89,11 +112,11 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 }
 
 func (h *TaskHandler) HandleDelete(ctx context.Context, in *DeleteTaskRequest) (*struct{}, error) {
-	userID, ok := authn.UserID(ctx)
+	userID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
-	err := h.svc.Delete(ctx, in.ID, userID)
+	err := h.svc.Delete(ctx, in.ID, userID, auth.HasRole(ctx, "admin"))
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

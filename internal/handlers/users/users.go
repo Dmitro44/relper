@@ -2,8 +2,9 @@ package users
 
 import (
 	"context"
+	"net/http"
 
-	"github.com/Dmitro44/relper/internal/authn"
+	"github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/entities/user"
 	"github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/dto"
@@ -32,19 +33,46 @@ func MapUserToDto(u *user.User) *dto.UserResponse {
 		Email:    u.Email,
 		Nickname: u.Nickname,
 		Habits:   u.Habits,
-		Contacts: dto.ContactsInput(u.Contacts),
+		Contacts: dto.ContactsOutput(u.Contacts),
 	}
 }
 
-func (h *UserHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Users"}
-	})
+func (h *UserHandler) Register(protected, admin huma.API) {
+	huma.Register(protected, huma.Operation{
+		OperationID:   "get-user",
+		Method:        http.MethodGet,
+		Path:          "/users/{id}",
+		Summary:       "Get a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/users/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/users/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/users/{id}", h.HandleDelete)
+	huma.Register(protected, huma.Operation{
+		OperationID:   "update-user",
+		Method:        http.MethodPatch,
+		Path:          "/users/{id}",
+		Summary:       "Update a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "delete-user",
+		Method:        http.MethodDelete,
+		Path:          "/users/{id}",
+		Summary:       "Delete a user",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "set-user-roles",
+		Method:        http.MethodPatch,
+		Path:          "/users/{id}/roles",
+		Summary:       "Assign roles (replaces existing ones)",
+		Tags:          []string{"Users"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleSetRoles)
 }
 
 func (h *UserHandler) HandleGetByID(ctx context.Context, in *GetUserRequest) (*UserResponse, error) {
@@ -57,7 +85,7 @@ func (h *UserHandler) HandleGetByID(ctx context.Context, in *GetUserRequest) (*U
 }
 
 func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (*UserResponse, error) {
-	callerID, ok := authn.UserID(ctx)
+	callerID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -85,7 +113,7 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 }
 
 func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (*struct{}, error) {
-	callerID, ok := authn.UserID(ctx)
+	callerID, ok := auth.UserID(ctx)
 	if !ok {
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
@@ -96,4 +124,16 @@ func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (
 	}
 
 	return nil, nil
+}
+
+func (h *UserHandler) HandleSetRoles(ctx context.Context, in *SetUserRolesRequest) (*UserRolesResponse, error) {
+	roles, err := h.svc.SetRoles(ctx, in.ID, in.Body.Roles)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	resp := new(UserRolesResponse)
+	resp.Body.Roles = roles
+
+	return resp, nil
 }

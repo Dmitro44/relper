@@ -38,13 +38,18 @@ func NewTaskService(repo tasksrepo.Repository) *TaskService {
 	}
 }
 
-func (t *TaskService) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
+func (t *TaskService) GetByID(ctx context.Context, id, callerID uuid.UUID, admin bool) (*task.Task, error) {
 	taskEntity, err := t.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, tasksrepo.ErrNotFound) {
 			return nil, apperr.NewNotFoundError("task not found")
 		}
 		return nil, apperr.NewInternalError("failed to get task", err)
+	}
+
+	if taskEntity.UserID != callerID && !admin {
+		slog.InfoContext(ctx, "task access denied", "task_id", id, "caller_id", callerID)
+		return nil, apperr.NewNotFoundError("task not found")
 	}
 
 	return taskEntity, nil
@@ -67,8 +72,8 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 	return taskEntity, nil
 }
 
-func (t *TaskService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*task.Task, error) {
-	taskEntity, err := t.repo.Update(ctx, id, userID, tasksrepo.UpdateInput{
+func (t *TaskService) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*task.Task, error) {
+	taskEntity, err := t.repo.Update(ctx, id, userID, admin, tasksrepo.UpdateInput{
 		LocationID:  input.LocationID,
 		Title:       input.Title,
 		Description: input.Description,
@@ -86,8 +91,8 @@ func (t *TaskService) Update(ctx context.Context, id, userID uuid.UUID, input Up
 	return taskEntity, nil
 }
 
-func (t *TaskService) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	err := t.repo.Delete(ctx, id, userID)
+func (t *TaskService) Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error {
+	err := t.repo.Delete(ctx, id, userID, admin)
 	if err != nil {
 		if errors.Is(err, tasksrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("task not found")

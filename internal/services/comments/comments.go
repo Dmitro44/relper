@@ -68,12 +68,12 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 	return commentEntity, nil
 }
 
-func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, input UpdateInput) (*comment.Comment, error) {
+func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*comment.Comment, error) {
 	// checks for ids (target, user)
 	//
 	// another business logic
 
-	commentEntity, err := c.repo.Update(ctx, id, userID, commentsrepo.UpdateInput{
+	commentEntity, err := c.repo.Update(ctx, id, userID, admin, commentsrepo.UpdateInput{
 		TargetType: input.TargetType,
 		TargetID:   input.TargetID,
 		Content:    input.Content,
@@ -89,8 +89,8 @@ func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, input
 	return commentEntity, nil
 }
 
-func (c *CommentService) Delete(ctx context.Context, id, userID uuid.UUID) error {
-	err := c.repo.Delete(ctx, id, userID)
+func (c *CommentService) Delete(ctx context.Context, id, callerID uuid.UUID, admin bool) error {
+	err := c.repo.Delete(ctx, id, callerID, admin)
 	if err != nil {
 		if errors.Is(err, commentsrepo.ErrNotFound) {
 			return apperr.NewNotFoundError("comment not found")

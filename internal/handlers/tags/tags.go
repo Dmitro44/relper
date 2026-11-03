@@ -19,23 +19,42 @@ func NewTagHandler(svc *tagsvc.TagService) *TagHandler {
 	}
 }
 
-func (h *TagHandler) Register(api huma.API) {
-	grp := huma.NewGroup(api)
-	grp.UseSimpleModifier(func(op *huma.Operation) {
-		op.Tags = []string{"Tags"}
-	})
+func (h *TagHandler) Register(public, admin huma.API) {
+	huma.Register(public, huma.Operation{
+		OperationID:   "get-tag",
+		Method:        http.MethodGet,
+		Path:          "/tags/{id}",
+		Summary:       "Get a tag",
+		Tags:          []string{"Tags"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetByID)
 
-	huma.Get(grp, "/tags/{id}", h.HandleGetByID)
-	huma.Patch(grp, "/tags/{id}", h.HandleUpdate)
-	huma.Delete(grp, "/tags/{id}", h.HandleDelete)
-
-	huma.Register(grp, huma.Operation{
+	huma.Register(admin, huma.Operation{
 		OperationID:   "create-tag",
 		Method:        http.MethodPost,
 		Path:          "/tags",
 		Summary:       "Create a tag",
-		DefaultStatus: 201,
+		Tags:          []string{"Tags"},
+		DefaultStatus: http.StatusCreated,
 	}, h.HandleCreate)
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "update-tag",
+		Method:        http.MethodPatch,
+		Path:          "/tags/{id}",
+		Summary:       "Update a tag",
+		Tags:          []string{"Tags"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleUpdate)
+
+	huma.Register(admin, huma.Operation{
+		OperationID:   "delete-tag",
+		Method:        http.MethodDelete,
+		Path:          "/tags/{id}",
+		Summary:       "Delete a tag",
+		Tags:          []string{"Tags"},
+		DefaultStatus: http.StatusNoContent,
+	}, h.HandleDelete)
 }
 
 func (h *TagHandler) HandleGetByID(ctx context.Context, in *GetTagRequest) (*TagResponse, error) {

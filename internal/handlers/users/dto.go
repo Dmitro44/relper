@@ -26,3 +26,16 @@ type DeleteUserRequest struct {
 type UserResponse struct {
 	Body *dto.UserResponse
 }
+
+type SetUserRolesRequest struct {
+	ID   uuid.UUID `path:"id"`
+	Body struct {
+		Roles []string `json:"roles" minItems:"1" doc:"Role codes to assign (replaces existing)"`
+	}
+}
+
+type UserRolesResponse struct {
+	Body struct {
+		Roles []string `json:"roles"`
+	}
+}
