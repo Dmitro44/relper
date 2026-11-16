@@ -28,7 +28,7 @@ func NewCommentsRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*comment.Comment, error) {
 	query := `
-select id, target_type, target_id, user_id, content, created_at
+select id, place_id, tip_id, user_id, content, created_at
 from comments
 where id = $1
 `
@@ -51,15 +51,15 @@ where id = $1
 
 func (p *Pgx) Create(ctx context.Context, input comments.CreateInput) (*comment.Comment, error) {
 	query := `
-insert into comments(target_type, target_id, user_id, content)
+insert into comments(place_id, tip_id, user_id, content)
 values ($1, $2, $3, $4)
-returning id, target_type, target_id, user_id, content, created_at;
+returning id, place_id, tip_id, user_id, content, created_at;
 `
 
 	rows, err := p.pool.Query(
 		ctx, query,
-		input.TargetType,
-		input.TargetID,
+		input.PlaceID,
+		input.TipID,
 		input.UserID,
 		input.Content,
 	)
@@ -82,17 +82,11 @@ func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, admin bool, inpu
 		updateBuilder = updateBuilder.Where(squirrel.Eq{"user_id": userID})
 	}
 
-	if input.TargetType != nil {
-		updateBuilder = updateBuilder.Set("target_type", input.TargetType)
-	}
-	if input.TargetID != nil {
-		updateBuilder = updateBuilder.Set("target_id", input.TargetID)
-	}
 	if input.Content != nil {
 		updateBuilder = updateBuilder.Set("content", input.Content)
 	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, target_type, target_id, user_id, content, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, place_id, tip_id, user_id, content, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {

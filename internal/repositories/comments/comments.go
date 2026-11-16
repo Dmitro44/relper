@@ -15,14 +15,12 @@ type Repository interface {
 }
 
 type CreateInput struct {
-	TargetType string
-	TargetID   uuid.UUID
-	UserID     uuid.UUID
-	Content    string
+	PlaceID *uuid.UUID
+	TipID   *uuid.UUID
+	UserID  uuid.UUID
+	Content string
 }
 
 type UpdateInput struct {
-	TargetType *string
-	TargetID   *uuid.UUID
-	Content    *string
+	Content *string
 }

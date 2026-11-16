@@ -24,7 +24,6 @@ type CreateInput struct {
 	WebsiteURL  string
 	Coordinates coordinates.Coordinates
 	Description string
-	Rating      float32
 }
 
 type UpdateInput struct {
@@ -36,5 +35,4 @@ type UpdateInput struct {
 	WebsiteURL  *string
 	Coordinates *coordinates.Coordinates
 	Description *string
-	Rating      *float32
 }

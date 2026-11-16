@@ -89,7 +89,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error) {
 	query := `
-select id, country, city, coordinates
+select id, country, city, coordinates, created_at
 from locations
 where id = $1
 `

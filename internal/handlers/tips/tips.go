@@ -57,24 +57,6 @@ func (h *TipHandler) Register(public, protected huma.API) {
 		Tags:          []string{"Tips"},
 		DefaultStatus: http.StatusNoContent,
 	}, h.HandleDelete)
-
-	huma.Register(protected, huma.Operation{
-		OperationID:   "add-tip-upvote",
-		Method:        http.MethodPost,
-		Path:          "/tips/{id}/upvote",
-		Summary:       "Add an upvote",
-		Tags:          []string{"Tips"},
-		DefaultStatus: http.StatusOK,
-	}, h.HandleUpvote)
-
-	huma.Register(protected, huma.Operation{
-		OperationID:   "remove-tip-upvote",
-		Method:        http.MethodDelete,
-		Path:          "/tips/{id}/upvote",
-		Summary:       "Remove upvote",
-		Tags:          []string{"Tips"},
-		DefaultStatus: http.StatusOK,
-	}, h.HandleRemoveUpvote)
 }
 
 func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*TipResponse, error) {
@@ -93,11 +75,11 @@ func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*T
 	}
 	t, err := h.svc.Create(ctx, tipsvc.CreateInput{
 		LocationID: in.Body.LocationID,
+		PlaceID:    in.Body.PlaceID,
 		UserID:     userID,
 		Category:   in.Body.Category,
 		Title:      in.Body.Title,
 		Content:    in.Body.Content,
-		Upvotes:    in.Body.Upvotes,
 	})
 	if err != nil {
 		return nil, httperr.Map(err)
@@ -113,10 +95,10 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 	}
 	t, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), tipsvc.UpdateInput{
 		LocationID: in.Body.LocationID,
+		PlaceID:    in.Body.PlaceID,
 		Category:   in.Body.Category,
 		Title:      in.Body.Title,
 		Content:    in.Body.Content,
-		Upvotes:    in.Body.Upvotes,
 	})
 	if err != nil {
 		return nil, httperr.Map(err)
@@ -136,22 +118,4 @@ func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*s
 	}
 
 	return nil, nil
-}
-
-func (h *TipHandler) HandleUpvote(ctx context.Context, in *UpvoteTipRequest) (*TipResponse, error) {
-	t, err := h.svc.Upvote(ctx, in.ID)
-	if err != nil {
-		return nil, httperr.Map(err)
-	}
-
-	return &TipResponse{Body: t}, nil
-}
-
-func (h *TipHandler) HandleRemoveUpvote(ctx context.Context, in *RemoveUpvoteTipRequest) (*TipResponse, error) {
-	t, err := h.svc.RemoveUpvote(ctx, in.ID)
-	if err != nil {
-		return nil, httperr.Map(err)
-	}
-
-	return &TipResponse{Body: t}, nil
 }

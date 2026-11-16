@@ -34,7 +34,6 @@ type CreateInput struct {
 	WebsiteURL  string
 	Coordinates coordinates.Coordinates
 	Description string
-	Rating      float32
 }
 
 type UpdateInput struct {
@@ -46,7 +45,6 @@ type UpdateInput struct {
 	WebsiteURL  *string
 	Coordinates *coordinates.Coordinates
 	Description *string
-	Rating      *float32
 }
 
 func (p *PlaceService) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
@@ -77,7 +75,6 @@ func (p *PlaceService) Create(ctx context.Context, input CreateInput) (*place.Pl
 		WebsiteURL:  input.WebsiteURL,
 		Coordinates: input.Coordinates,
 		Description: input.Description,
-		Rating:      input.Rating,
 	})
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create place", err)
@@ -97,7 +94,6 @@ func (p *PlaceService) Update(ctx context.Context, id uuid.UUID, input UpdateInp
 		WebsiteURL:  input.WebsiteURL,
 		Coordinates: input.Coordinates,
 		Description: input.Description,
-		Rating:      input.Rating,
 	})
 	if err != nil {
 		if errors.Is(err, placesrepo.ErrNotFound) {

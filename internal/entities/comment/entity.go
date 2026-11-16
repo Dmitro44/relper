@@ -7,10 +7,10 @@ import (
 )
 
 type Comment struct {
-	ID         uuid.UUID
-	TargetType string
-	TargetID   uuid.UUID
-	UserID     uuid.UUID
-	Content    string
-	CreatedAt  time.Time
+	ID        uuid.UUID
+	PlaceID   *uuid.UUID
+	TipID     *uuid.UUID
+	UserID    uuid.UUID
+	Content   string
+	CreatedAt time.Time
 }

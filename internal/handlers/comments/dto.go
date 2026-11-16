@@ -15,18 +15,16 @@ type DeleteCommentRequest struct {
 
 type CreateCommentRequest struct {
 	Body struct {
-		TargetType string    `json:"target_type" minLength:"1" doc:"Type of the target (e.g. tip, place)"`
-		TargetID   uuid.UUID `json:"target_id"`
-		Content    string    `json:"content" minLength:"1"`
+		PlaceID *uuid.UUID `json:"place_id,omitempty"`
+		TipID   *uuid.UUID `json:"tip_id,omitempty"`
+		Content string     `json:"content" minLength:"1"`
 	}
 }
 
 type UpdateCommentRequest struct {
 	ID   uuid.UUID `path:"id"`
 	Body struct {
-		TargetType *string    `json:"target_type,omitempty"`
-		TargetID   *uuid.UUID `json:"target_id,omitempty"`
-		Content    *string    `json:"content,omitempty" minLength:"1"`
+		Content *string `json:"content,omitempty" minLength:"1"`
 	}
 }
 

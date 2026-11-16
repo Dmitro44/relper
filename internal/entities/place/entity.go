@@ -17,6 +17,5 @@ type Place struct {
 	WebsiteURL  string
 	Coordinates coordinates.Coordinates
 	Description string
-	Rating      float32
 	CreatedAt   time.Time
 }

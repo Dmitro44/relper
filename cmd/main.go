@@ -14,8 +14,8 @@ import (
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places/pgx"
-	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles/pgx"
 	reftokrepo "github.com/Dmitro44/relper/internal/repositories/refreshtokens/pgx"
+	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles/pgx"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags/pgx"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips/pgx"
@@ -53,6 +53,9 @@ func main() {
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
 	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool), rolesrepo.NewRolesRepo(pool))
 	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg)
+	placeService := places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService)
+	tipService := tips.NewTipService(tipsrepo.NewTipsRepo(pool), placeService, locationService)
+	commentService := comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool), placeService, tipService)
 
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
@@ -62,12 +65,12 @@ func main() {
 	handlers.Register(api, handlers.Deps{
 		Users:     userService,
 		Auth:      authService,
-		Comments:  comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool)),
+		Comments:  commentService,
 		Locations: locationService,
-		Places:    places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService),
+		Places:    placeService,
 		Tags:      tags.NewTagService(tagsrepo.NewTagsRepo(pool)),
 		Tasks:     tasks.NewTaskService(tasksrepo.NewTasksRepo(pool)),
-		Tips:      tips.NewTipService(tipsrepo.NewTipsRepo(pool)),
+		Tips:      tipService,
 	})
 
 	log.Fatal(app.Listen(":3000"))

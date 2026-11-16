@@ -74,10 +74,10 @@ func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequ
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
 	u, err := h.svc.Create(ctx, commentsvc.CreateInput{
-		TargetType: in.Body.TargetType,
-		TargetID:   in.Body.TargetID,
-		UserID:     userID,
-		Content:    in.Body.Content,
+		PlaceID: in.Body.PlaceID,
+		TipID:   in.Body.TipID,
+		UserID:  userID,
+		Content: in.Body.Content,
 	})
 	if err != nil {
 		return nil, httperr.Map(err)
@@ -92,9 +92,7 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
 	updateInput := commentsvc.UpdateInput{
-		TargetType: in.Body.TargetType,
-		TargetID:   in.Body.TargetID,
-		Content:    in.Body.Content,
+		Content: in.Body.Content,
 	}
 
 	u, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), updateInput)

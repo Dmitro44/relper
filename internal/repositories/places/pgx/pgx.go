@@ -28,9 +28,9 @@ func NewPlacesRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) Create(ctx context.Context, input places.CreateInput) (*place.Place, error) {
 	query := `
-insert into places(location_id, name, category, address, phone, website_url, coordinates, description, rating)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at;
+insert into places(location_id, name, category, address, phone, website_url, coordinates, description)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
+returning id, location_id, name, category, address, phone, website_url, coordinates, description, created_at;
 `
 
 	rows, err := p.pool.Query(
@@ -43,7 +43,6 @@ returning id, location_id, name, category, address, phone, website_url, coordina
 		input.WebsiteURL,
 		input.Coordinates,
 		input.Description,
-		input.Rating,
 	)
 	if err != nil {
 		return nil, err
@@ -84,11 +83,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 	if input.Description != nil {
 		updateBuilder = updateBuilder.Set("description", input.Description)
 	}
-	if input.Rating != nil {
-		updateBuilder = updateBuilder.Set("rating", input.Rating)
-	}
-
-	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -113,7 +108,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
 	query := `
-select id, location_id, name, category, address, phone, website_url, coordinates, description, rating, created_at 
+select id, location_id, name, category, address, phone, website_url, coordinates, description, created_at 
 from places
 where id = $1
 `

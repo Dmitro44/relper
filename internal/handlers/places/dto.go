@@ -16,7 +16,6 @@ type CreatePlaceRequest struct {
 		WebsiteURL  string               `json:"website_url,omitempty"`
 		Coordinates dto.CoordinatesInput `json:"coordinates"`
 		Description string               `json:"description,omitempty"`
-		Rating      float32              `json:"rating,omitempty" minimum:"0" maximum:"5"`
 	}
 }
 
@@ -31,7 +30,6 @@ type UpdatePlaceRequest struct {
 		WebsiteURL  *string               `json:"website_url,omitempty"`
 		Coordinates *dto.CoordinatesInput `json:"coordinates,omitempty"`
 		Description *string               `json:"description,omitempty"`
-		Rating      *float32              `json:"rating,omitempty" minimum:"0" maximum:"5"`
 	}
 }
 

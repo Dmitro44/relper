@@ -6,31 +6,43 @@ import (
 	"log/slog"
 
 	"github.com/Dmitro44/relper/internal/entities/comment"
+	"github.com/Dmitro44/relper/internal/entities/place"
+	"github.com/Dmitro44/relper/internal/entities/tip"
 	apperr "github.com/Dmitro44/relper/internal/errors"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments"
 	"github.com/google/uuid"
 )
 
+type PlaceGetter interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error)
+}
+
+type TipGetter interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
+}
+
 type CommentService struct {
-	repo commentsrepo.Repository
+	repo   commentsrepo.Repository
+	places PlaceGetter
+	tips   TipGetter
 }
 
 type CreateInput struct {
-	TargetType string
-	TargetID   uuid.UUID
-	UserID     uuid.UUID
-	Content    string
+	PlaceID *uuid.UUID
+	TipID   *uuid.UUID
+	UserID  uuid.UUID
+	Content string
 }
 
 type UpdateInput struct {
-	TargetType *string
-	TargetID   *uuid.UUID
-	Content    *string
+	Content *string
 }
 
-func NewCommmentService(repo commentsrepo.Repository) *CommentService {
+func NewCommmentService(repo commentsrepo.Repository, places PlaceGetter, tips TipGetter) *CommentService {
 	return &CommentService{
-		repo: repo,
+		repo:   repo,
+		places: places,
+		tips:   tips,
 	}
 }
 
@@ -47,18 +59,26 @@ func (c *CommentService) GetByID(ctx context.Context, id uuid.UUID) (*comment.Co
 }
 
 func (c *CommentService) Create(ctx context.Context, input CreateInput) (*comment.Comment, error) {
-	// checks for ids (target, user)
-	//
-	// another business logic
-	// if input.TargetType == "tip" {
-	// 	_, err := c.repo.
-	// }
+	if (input.PlaceID == nil) == (input.TipID == nil) {
+		return nil, apperr.NewBadRequestError("exactly one of place_id or tip_id is required")
+	}
+
+	if input.PlaceID != nil {
+		if _, err := c.places.GetByID(ctx, *input.PlaceID); err != nil {
+			return nil, err
+		}
+	}
+	if input.TipID != nil {
+		if _, err := c.tips.GetByID(ctx, *input.TipID); err != nil {
+			return nil, err
+		}
+	}
 
 	commentEntity, err := c.repo.Create(ctx, commentsrepo.CreateInput{
-		TargetType: input.TargetType,
-		TargetID:   input.TargetID,
-		UserID:     input.UserID,
-		Content:    input.Content,
+		PlaceID: input.PlaceID,
+		TipID:   input.TipID,
+		UserID:  input.UserID,
+		Content: input.Content,
 	})
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create comment", err)
@@ -69,14 +89,12 @@ func (c *CommentService) Create(ctx context.Context, input CreateInput) (*commen
 }
 
 func (c *CommentService) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*comment.Comment, error) {
-	// checks for ids (target, user)
-	//
-	// another business logic
+	if input.Content == nil || *input.Content == "" {
+		return nil, apperr.NewBadRequestError("content is required")
+	}
 
 	commentEntity, err := c.repo.Update(ctx, id, userID, admin, commentsrepo.UpdateInput{
-		TargetType: input.TargetType,
-		TargetID:   input.TargetID,
-		Content:    input.Content,
+		Content: input.Content,
 	})
 	if err != nil {
 		if errors.Is(err, commentsrepo.ErrNotFound) {
