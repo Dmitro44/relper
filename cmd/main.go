@@ -12,8 +12,10 @@ import (
 	"github.com/Dmitro44/relper/internal/logger"
 	"github.com/Dmitro44/relper/internal/middlewares"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
+	likesrepo "github.com/Dmitro44/relper/internal/repositories/likes/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
 	placesrepo "github.com/Dmitro44/relper/internal/repositories/places/pgx"
+	ratingsrepo "github.com/Dmitro44/relper/internal/repositories/ratings/pgx"
 	reftokrepo "github.com/Dmitro44/relper/internal/repositories/refreshtokens/pgx"
 	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles/pgx"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags/pgx"
@@ -22,8 +24,10 @@ import (
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users/pgx"
 	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/Dmitro44/relper/internal/services/comments"
+	"github.com/Dmitro44/relper/internal/services/likes"
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/Dmitro44/relper/internal/services/places"
+	"github.com/Dmitro44/relper/internal/services/ratings"
 	"github.com/Dmitro44/relper/internal/services/tags"
 	"github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/Dmitro44/relper/internal/services/tips"
@@ -56,6 +60,8 @@ func main() {
 	placeService := places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService)
 	tipService := tips.NewTipService(tipsrepo.NewTipsRepo(pool), placeService, locationService)
 	commentService := comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool), placeService, tipService)
+	ratingService := ratings.NewRatingService(ratingsrepo.NewRatingsRepo(pool), placeService)
+	likeService := likes.NewLikeService(likesrepo.NewLikesRepo(pool), tipService, commentService)
 
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
@@ -71,6 +77,8 @@ func main() {
 		Tags:      tags.NewTagService(tagsrepo.NewTagsRepo(pool)),
 		Tasks:     tasks.NewTaskService(tasksrepo.NewTasksRepo(pool)),
 		Tips:      tipService,
+		Ratings:   ratingService,
+		Likes:     likeService,
 	})
 
 	log.Fatal(app.Listen(":3000"))

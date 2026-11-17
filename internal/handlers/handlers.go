@@ -4,16 +4,20 @@ import (
 	authn "github.com/Dmitro44/relper/internal/auth"
 	"github.com/Dmitro44/relper/internal/handlers/auth"
 	"github.com/Dmitro44/relper/internal/handlers/comments"
+	"github.com/Dmitro44/relper/internal/handlers/likes"
 	"github.com/Dmitro44/relper/internal/handlers/locations"
 	"github.com/Dmitro44/relper/internal/handlers/places"
+	"github.com/Dmitro44/relper/internal/handlers/ratings"
 	"github.com/Dmitro44/relper/internal/handlers/tags"
 	"github.com/Dmitro44/relper/internal/handlers/tasks"
 	"github.com/Dmitro44/relper/internal/handlers/tips"
 	"github.com/Dmitro44/relper/internal/handlers/users"
 	authsvc "github.com/Dmitro44/relper/internal/services/auth"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
+	likessvc "github.com/Dmitro44/relper/internal/services/likes"
 	locationsvc "github.com/Dmitro44/relper/internal/services/locations"
 	placesvc "github.com/Dmitro44/relper/internal/services/places"
+	ratingsvc "github.com/Dmitro44/relper/internal/services/ratings"
 	tagsvc "github.com/Dmitro44/relper/internal/services/tags"
 	tasksvc "github.com/Dmitro44/relper/internal/services/tasks"
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
@@ -30,6 +34,8 @@ type Deps struct {
 	Tags      *tagsvc.TagService
 	Tasks     *tasksvc.TaskService
 	Tips      *tipsvc.TipService
+	Ratings   *ratingsvc.RatingService
+	Likes     *likessvc.LikeService
 }
 
 func Register(api huma.API, d Deps) {
@@ -43,9 +49,11 @@ func Register(api huma.API, d Deps) {
 	comments.NewCommentHandler(d.Comments).Register(api, protected)
 	locations.NewLocationHandler(d.Locations).Register(api, admin)
 	places.NewPlaceHandler(d.Places).Register(api, admin)
+	ratings.NewRatingHandler(d.Ratings).Register(api, protected)
 	tags.NewTagHandler(d.Tags).Register(api, admin)
 	tasks.NewTaskHandler(d.Tasks).Register(protected)
 	tips.NewTipHandler(d.Tips).Register(api, protected)
+	likes.NewLikeHandler(d.Likes).Register(api, protected)
 
 	// auth routes stay on root api and remain public (except /auth/me)
 	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
@@ -67,6 +75,8 @@ func Config() huma.Config {
 		{Name: "Comments"},
 		{Name: "Locations"},
 		{Name: "Places"},
+		{Name: "Ratings"},
+		{Name: "Likes"},
 		{Name: "Tags"},
 		{Name: "Tasks"},
 		{Name: "Tips"},
