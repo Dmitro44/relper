@@ -94,8 +94,8 @@ func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest)
 		Phone:      in.Body.Phone,
 		WebsiteURL: in.Body.WebsiteURL,
 		Coordinates: coordinates.Coordinates{
-			Lat: in.Body.Coordinates.Lat,
-			Lng: in.Body.Coordinates.Lng,
+			Latitude:  in.Body.Coordinates.Latitude,
+			Longitude: in.Body.Coordinates.Longitude,
 		},
 		Description: in.Body.Description,
 	}
@@ -119,8 +119,8 @@ func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest)
 	}
 	if in.Body.Coordinates != nil {
 		updateInput.Coordinates = &coordinates.Coordinates{
-			Lat: in.Body.Coordinates.Lat,
-			Lng: in.Body.Coordinates.Lng,
+			Latitude:  in.Body.Coordinates.Latitude,
+			Longitude: in.Body.Coordinates.Longitude,
 		}
 	}
 

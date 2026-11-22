@@ -72,8 +72,8 @@ func (h *LocationHandler) HandleCreate(ctx context.Context, in *CreateLocationRe
 		Country: in.Body.Country,
 		City:    in.Body.City,
 		Coordinates: coordinates.Coordinates{
-			Lat: in.Body.Coordinates.Lat,
-			Lng: in.Body.Coordinates.Lng,
+			Latitude:  in.Body.Coordinates.Latitude,
+			Longitude: in.Body.Coordinates.Longitude,
 		},
 	}
 	loc, err := h.svc.Create(ctx, createInput)
@@ -91,8 +91,8 @@ func (h *LocationHandler) HandleUpdate(ctx context.Context, in *UpdateLocationRe
 	}
 	if in.Body.Coordinates != nil {
 		updateInput.Coordinates = &coordinates.Coordinates{
-			Lat: in.Body.Coordinates.Lat,
-			Lng: in.Body.Coordinates.Lng,
+			Latitude:  in.Body.Coordinates.Latitude,
+			Longitude: in.Body.Coordinates.Longitude,
 		}
 	}
 

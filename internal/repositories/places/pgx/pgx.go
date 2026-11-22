@@ -28,9 +28,9 @@ func NewPlacesRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) Create(ctx context.Context, input places.CreateInput) (*place.Place, error) {
 	query := `
-insert into places(location_id, name, category, address, phone, website_url, coordinates, description)
-values ($1, $2, $3, $4, $5, $6, $7, $8)
-returning id, location_id, name, category, address, phone, website_url, coordinates, description, created_at;
+insert into places(location_id, name, category, address, phone, website_url, latitude, longitude, description)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+returning id, location_id, name, category, address, phone, website_url, latitude, longitude, description, created_at;
 `
 
 	rows, err := p.pool.Query(
@@ -41,7 +41,8 @@ returning id, location_id, name, category, address, phone, website_url, coordina
 		input.Address,
 		input.Phone,
 		input.WebsiteURL,
-		input.Coordinates,
+		input.Coordinates.Latitude,
+		input.Coordinates.Longitude,
 		input.Description,
 	)
 	if err != nil {
@@ -78,12 +79,14 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 		updateBuilder = updateBuilder.Set("website_url", input.WebsiteURL)
 	}
 	if input.Coordinates != nil {
-		updateBuilder = updateBuilder.Set("coordinates", input.Coordinates)
+		updateBuilder = updateBuilder.
+			Set("latitude", input.Coordinates.Latitude).
+			Set("longitude", input.Coordinates.Longitude)
 	}
 	if input.Description != nil {
 		updateBuilder = updateBuilder.Set("description", input.Description)
 	}
-	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, coordinates, description, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, location_id, name, category, address, phone, website_url, latitude, longitude, description, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -108,7 +111,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input places.UpdateInput
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*place.Place, error) {
 	query := `
-select id, location_id, name, category, address, phone, website_url, coordinates, description, created_at 
+select id, location_id, name, category, address, phone, website_url, latitude, longitude, description, created_at
 from places
 where id = $1
 `
@@ -138,7 +141,8 @@ func placeWithRatingSelect() squirrel.SelectBuilder {
 		"p.address",
 		"p.phone",
 		"p.website_url",
-		"p.coordinates",
+		"p.latitude",
+		"p.longitude",
 		"p.description",
 		"p.created_at",
 		"coalesce(round(avg(r.stars)::numeric, 1), 0)::float8 as avg_stars",

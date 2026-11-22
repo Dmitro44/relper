@@ -8,9 +8,9 @@ import (
 )
 
 type Location struct {
-	ID          uuid.UUID
-	Country     string
-	City        string
-	Coordinates coordinates.Coordinates
-	CreatedAt   time.Time
+	ID                      uuid.UUID
+	Country                 string
+	City                    string
+	coordinates.Coordinates `json:"Coordinates"`
+	CreatedAt               time.Time
 }

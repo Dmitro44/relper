@@ -9,16 +9,16 @@ import (
 )
 
 type Place struct {
-	ID          uuid.UUID
-	LocationID  uuid.UUID
-	Name        string
-	Category    string
-	Address     string
-	Phone       string
-	WebsiteURL  string
-	Coordinates coordinates.Coordinates
-	Description string
-	CreatedAt   time.Time
+	ID                      uuid.UUID
+	LocationID              uuid.UUID
+	Name                    string
+	Category                string
+	Address                 string
+	Phone                   string
+	WebsiteURL              string
+	coordinates.Coordinates `json:"Coordinates"`
+	Description             string
+	CreatedAt               time.Time
 }
 
 type WithRating struct {

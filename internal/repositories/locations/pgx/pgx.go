@@ -28,16 +28,17 @@ func NewLocationsRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) Create(ctx context.Context, input locations.CreateInput) (*location.Location, error) {
 	query := `
-insert into locations(country, city, coordinates)
-values ($1, $2, $3)
-returning id, country, city, coordinates, created_at;
+insert into locations(country, city, latitude, longitude)
+values ($1, $2, $3, $4)
+returning id, country, city, latitude, longitude, created_at;
 `
 
 	rows, err := p.pool.Query(
 		ctx, query,
 		input.Country,
 		input.City,
-		input.Coordinates,
+		input.Coordinates.Latitude,
+		input.Coordinates.Longitude,
 	)
 	if err != nil {
 		return nil, err
@@ -61,10 +62,12 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 		updateBuilder = updateBuilder.Set("city", input.City)
 	}
 	if input.Coordinates != nil {
-		updateBuilder = updateBuilder.Set("coordinates", input.Coordinates)
+		updateBuilder = updateBuilder.
+			Set("latitude", input.Coordinates.Latitude).
+			Set("longitude", input.Coordinates.Longitude)
 	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, country, city, coordinates, created_at;`)
+	updateBuilder = updateBuilder.Suffix(`returning id, country, city, latitude, longitude, created_at;`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
@@ -89,7 +92,7 @@ func (p *Pgx) Update(ctx context.Context, id uuid.UUID, input locations.UpdateIn
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error) {
 	query := `
-select id, country, city, coordinates, created_at
+select id, country, city, latitude, longitude, created_at
 from locations
 where id = $1
 `
