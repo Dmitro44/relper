@@ -129,6 +129,73 @@ where id = $1
 	return &place, nil
 }
 
+func placeWithRatingSelect() squirrel.SelectBuilder {
+	return sq.Select(
+		"p.id",
+		"p.location_id",
+		"p.name",
+		"p.category",
+		"p.address",
+		"p.phone",
+		"p.website_url",
+		"p.coordinates",
+		"p.description",
+		"p.created_at",
+		"coalesce(round(avg(r.stars)::numeric, 1), 0)::float8 as avg_stars",
+		"count(r.id)::bigint as votes_count",
+		"count(r.id) filter (where r.stars >= 4)::bigint as recommend",
+		"count(r.id) filter (where r.stars <= 2)::bigint as not_recommend",
+	).
+		From("places p").
+		LeftJoin("place_ratings r on r.place_id = p.id")
+}
+
+func (p *Pgx) GetByIDWithRating(ctx context.Context, id uuid.UUID) (*places.PlaceWithRating, error) {
+	query, args, err := placeWithRatingSelect().
+		Where(squirrel.Eq{"p.id": id}).
+		GroupBy("p.id").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := p.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	item, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[places.PlaceWithRating])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, places.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (p *Pgx) ListByLocation(ctx context.Context, locationID uuid.UUID, category string) ([]places.PlaceWithRating, error) {
+	builder := placeWithRatingSelect().
+		Where(squirrel.Eq{"p.location_id": locationID}).
+		GroupBy("p.id")
+	if category != "" {
+		builder = builder.Where(squirrel.Eq{"p.category": category})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := p.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return pgx.CollectRows(rows, pgx.RowToStructByName[places.PlaceWithRating])
+}
+
 func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `
 delete from places

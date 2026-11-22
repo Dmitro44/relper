@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Dmitro44/relper/internal/entities/coordinates"
+	"github.com/Dmitro44/relper/internal/entities/rating"
 	"github.com/google/uuid"
 )
 
@@ -18,4 +19,9 @@ type Place struct {
 	Coordinates coordinates.Coordinates
 	Description string
 	CreatedAt   time.Time
+}
+
+type WithRating struct {
+	Place
+	Rating rating.Summary `json:"rating"`
 }

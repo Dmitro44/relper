@@ -57,7 +57,7 @@ func main() {
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
 	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool), rolesrepo.NewRolesRepo(pool))
 	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg)
-	placeService := places.NewPlaceService(placesrepo.NewPlacesRepo(pool), *locationService)
+	placeService := places.NewPlaceService(placesrepo.NewPlacesRepo(pool), locationService)
 	tipService := tips.NewTipService(tipsrepo.NewTipsRepo(pool), placeService, locationService)
 	commentService := comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool), placeService, tipService)
 	ratingService := ratings.NewRatingService(ratingsrepo.NewRatingsRepo(pool), placeService)

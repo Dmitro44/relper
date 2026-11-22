@@ -30,6 +30,15 @@ func (h *PlaceHandler) Register(public, admin huma.API) {
 		DefaultStatus: http.StatusOK,
 	}, h.HandleGetByID)
 
+	huma.Register(public, huma.Operation{
+		OperationID:   "list-location-places",
+		Method:        http.MethodGet,
+		Path:          "/locations/{id}/places",
+		Summary:       "List places in a location",
+		Tags:          []string{"Places"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleListByLocation)
+
 	huma.Register(admin, huma.Operation{
 		OperationID:   "update-place",
 		Method:        http.MethodPatch,
@@ -58,13 +67,22 @@ func (h *PlaceHandler) Register(public, admin huma.API) {
 	}, h.HandleCreate)
 }
 
-func (h *PlaceHandler) HandleGetByID(ctx context.Context, in *GetPlaceRequest) (*PlaceResponse, error) {
-	p, err := h.svc.GetByID(ctx, in.ID)
+func (h *PlaceHandler) HandleGetByID(ctx context.Context, in *GetPlaceRequest) (*PlaceWithRatingResponse, error) {
+	p, err := h.svc.GetByIDWithRating(ctx, in.ID)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}
 
-	return &PlaceResponse{Body: p}, nil
+	return &PlaceWithRatingResponse{Body: p}, nil
+}
+
+func (h *PlaceHandler) HandleListByLocation(ctx context.Context, in *ListPlacesRequest) (*ListPlacesResponse, error) {
+	items, err := h.svc.ListByLocation(ctx, in.ID, in.Category, placesvc.SortKey(in.Sort))
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &ListPlacesResponse{Body: items}, nil
 }
 
 func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest) (*PlaceResponse, error) {

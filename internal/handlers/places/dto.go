@@ -37,10 +37,24 @@ type GetPlaceRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type ListPlacesRequest struct {
+	ID       uuid.UUID `path:"id"`
+	Category string    `query:"category"`
+	Sort     string    `query:"sort" enum:"wilson,avg_stars,votes_count,name" default:"wilson"`
+}
+
 type DeletePlaceRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
 type PlaceResponse struct {
 	Body *place.Place
+}
+
+type PlaceWithRatingResponse struct {
+	Body *place.WithRating
+}
+
+type ListPlacesResponse struct {
+	Body []place.WithRating
 }
