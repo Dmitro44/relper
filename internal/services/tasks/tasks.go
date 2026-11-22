@@ -16,7 +16,6 @@ type TaskService struct {
 }
 
 type CreateInput struct {
-	LocationID  uuid.UUID
 	UserID      uuid.UUID
 	Title       string
 	Description string
@@ -25,7 +24,6 @@ type CreateInput struct {
 }
 
 type UpdateInput struct {
-	LocationID  *uuid.UUID
 	Title       *string
 	Description *string
 	PlaceID     *uuid.UUID
@@ -57,7 +55,6 @@ func (t *TaskService) GetByID(ctx context.Context, id, callerID uuid.UUID, admin
 
 func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task, error) {
 	taskEntity, err := t.repo.Create(ctx, tasksrepo.CreateInput{
-		LocationID:  input.LocationID,
 		UserID:      input.UserID,
 		Title:       input.Title,
 		Description: input.Description,
@@ -74,7 +71,6 @@ func (t *TaskService) Create(ctx context.Context, input CreateInput) (*task.Task
 
 func (t *TaskService) Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*task.Task, error) {
 	taskEntity, err := t.repo.Update(ctx, id, userID, admin, tasksrepo.UpdateInput{
-		LocationID:  input.LocationID,
 		Title:       input.Title,
 		Description: input.Description,
 		PlaceID:     input.PlaceID,

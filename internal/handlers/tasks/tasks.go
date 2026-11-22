@@ -78,7 +78,6 @@ func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
 	t, err := h.svc.Create(ctx, tasksvc.CreateInput{
-		LocationID:  in.Body.LocationID,
 		UserID:      userID,
 		Title:       in.Body.Title,
 		Description: in.Body.Description,
@@ -98,7 +97,6 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
 	t, err := h.svc.Update(ctx, in.ID, userID, auth.HasRole(ctx, "admin"), tasksvc.UpdateInput{
-		LocationID:  in.Body.LocationID,
 		Title:       in.Body.Title,
 		Description: in.Body.Description,
 		PlaceID:     in.Body.PlaceID,

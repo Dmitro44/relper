@@ -28,7 +28,7 @@ func NewTasksRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
 	query := `
-select id, location_id, user_id, title, description, place_id, done, created_at
+select id, user_id, title, description, place_id, done, created_at
 from tasks
 where id = $1
 `
@@ -51,14 +51,13 @@ where id = $1
 
 func (p *Pgx) Create(ctx context.Context, input tasks.CreateInput) (*task.Task, error) {
 	query := `
-insert into tasks(location_id, user_id, title, description, place_id, done)
-values ($1, $2, $3, $4, $5, $6)
-returning id, location_id, user_id, title, description, place_id, done, created_at;
+insert into tasks(user_id, title, description, place_id, done)
+values ($1, $2, $3, $4, $5)
+returning id, user_id, title, description, place_id, done, created_at;
 `
 
 	rows, err := p.pool.Query(
 		ctx, query,
-		input.LocationID,
 		input.UserID,
 		input.Title,
 		input.Description,
@@ -84,9 +83,6 @@ func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, admin bool, inpu
 		updateBuilder = updateBuilder.Where(squirrel.Eq{"user_id": userID})
 	}
 
-	if input.LocationID != nil {
-		updateBuilder = updateBuilder.Set("location_id", input.LocationID)
-	}
 	if input.Title != nil {
 		updateBuilder = updateBuilder.Set("title", input.Title)
 	}
@@ -100,7 +96,7 @@ func (p *Pgx) Update(ctx context.Context, id, userID uuid.UUID, admin bool, inpu
 		updateBuilder = updateBuilder.Set("done", input.Done)
 	}
 
-	updateBuilder = updateBuilder.Suffix(`returning id, location_id, user_id, title, description, place_id, done, created_at`)
+	updateBuilder = updateBuilder.Suffix(`returning id, user_id, title, description, place_id, done, created_at`)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {

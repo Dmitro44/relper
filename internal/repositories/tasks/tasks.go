@@ -15,7 +15,6 @@ type Repository interface {
 }
 
 type CreateInput struct {
-	LocationID  uuid.UUID
 	UserID      uuid.UUID
 	Title       string
 	Description string
@@ -24,7 +23,6 @@ type CreateInput struct {
 }
 
 type UpdateInput struct {
-	LocationID  *uuid.UUID
 	Title       *string
 	Description *string
 	PlaceID     *uuid.UUID

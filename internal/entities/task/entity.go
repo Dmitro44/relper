@@ -8,7 +8,6 @@ import (
 
 type Task struct {
 	ID          uuid.UUID
-	LocationID  uuid.UUID
 	UserID      uuid.UUID
 	Title       string
 	Description string
