@@ -49,6 +49,31 @@ where id = $1
 	return &tip, nil
 }
 
+func (p *Pgx) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]tip.Tip, error) {
+	query := `
+select id, location_id, place_id, user_id, category, title, content, created_at
+from tips
+where place_id = $1
+order by created_at desc
+`
+
+	rows, err := p.pool.Query(ctx, query, placeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items, err := pgx.CollectRows(rows, pgx.RowToStructByName[tip.Tip])
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		items = make([]tip.Tip, 0)
+	}
+
+	return items, nil
+}
+
 func (p *Pgx) Create(ctx context.Context, input tips.CreateInput) (*tip.Tip, error) {
 	query := `
 insert into tips(location_id, place_id, user_id, category, title, content)

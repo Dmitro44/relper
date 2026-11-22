@@ -31,6 +31,15 @@ func (h *TipHandler) Register(public, protected huma.API) {
 		DefaultStatus: http.StatusOK,
 	}, h.HandleGetByID)
 
+	huma.Register(public, huma.Operation{
+		OperationID:   "list-place-tips",
+		Method:        http.MethodGet,
+		Path:          "/places/{id}/tips",
+		Summary:       "List tips for a place",
+		Tags:          []string{"Tips"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleListByPlace)
+
 	huma.Register(protected, huma.Operation{
 		OperationID:   "create-tip",
 		Method:        http.MethodPost,
@@ -66,6 +75,15 @@ func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*Tip
 	}
 
 	return &TipResponse{Body: t}, nil
+}
+
+func (h *TipHandler) HandleListByPlace(ctx context.Context, in *ListPlaceTipsRequest) (*TipsResponse, error) {
+	items, err := h.svc.ListByPlace(ctx, in.ID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &TipsResponse{Body: items}, nil
 }
 
 func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*TipResponse, error) {

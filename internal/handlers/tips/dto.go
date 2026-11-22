@@ -30,10 +30,18 @@ type GetTipRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type ListPlaceTipsRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
 type DeleteTipRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
 type TipResponse struct {
 	Body *tip.Tip
+}
+
+type TipsResponse struct {
+	Body []tip.Tip
 }

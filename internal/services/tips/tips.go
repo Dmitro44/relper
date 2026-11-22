@@ -130,6 +130,22 @@ func (t *TipService) Update(ctx context.Context, id, userID uuid.UUID, admin boo
 	return tipEntity, nil
 }
 
+func (t *TipService) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]tip.Tip, error) {
+	if _, err := t.places.GetByID(ctx, placeID); err != nil {
+		return nil, err
+	}
+
+	items, err := t.repo.ListByPlace(ctx, placeID)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to list tips", err)
+	}
+	if items == nil {
+		items = make([]tip.Tip, 0)
+	}
+
+	return items, nil
+}
+
 func (t *TipService) Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error {
 	err := t.repo.Delete(ctx, id, userID, admin)
 	if err != nil {

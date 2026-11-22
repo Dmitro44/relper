@@ -16,6 +16,8 @@ import (
 type fakeRepo struct {
 	created tipsrepo.CreateInput
 	updated tipsrepo.UpdateInput
+	list    []tip.Tip
+	listErr error
 }
 
 func (f *fakeRepo) GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error) {
@@ -42,6 +44,13 @@ func (f *fakeRepo) Update(ctx context.Context, id, userID uuid.UUID, admin bool,
 
 func (f *fakeRepo) Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error {
 	return nil
+}
+
+func (f *fakeRepo) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]tip.Tip, error) {
+	if f.listErr != nil {
+		return nil, f.listErr
+	}
+	return f.list, nil
 }
 
 type fakePlaceGetter struct {
@@ -175,5 +184,63 @@ func TestUpdate(t *testing.T) {
 		})
 
 		assertErrorCode(t, err, apperr.ErrorCodeNotFound)
+	})
+}
+
+func TestListByPlace(t *testing.T) {
+	t.Run("place not found", func(t *testing.T) {
+		svc := NewTipService(
+			&fakeRepo{},
+			&fakePlaceGetter{err: apperr.NewNotFoundError("place not found")},
+			&fakeLocationGetter{},
+		)
+
+		_, err := svc.ListByPlace(context.Background(), uuid.New())
+
+		assertErrorCode(t, err, apperr.ErrorCodeNotFound)
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		svc := NewTipService(
+			&fakeRepo{listErr: errors.New("boom")},
+			&fakePlaceGetter{},
+			&fakeLocationGetter{},
+		)
+
+		_, err := svc.ListByPlace(context.Background(), uuid.New())
+
+		assertErrorCode(t, err, apperr.ErrorCodeInternal)
+	})
+
+	t.Run("returns list", func(t *testing.T) {
+		tipID := uuid.New()
+		svc := NewTipService(
+			&fakeRepo{list: []tip.Tip{{ID: tipID}}},
+			&fakePlaceGetter{},
+			&fakeLocationGetter{},
+		)
+
+		items, err := svc.ListByPlace(context.Background(), uuid.New())
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(items) != 1 || items[0].ID != tipID {
+			t.Fatalf("expected one tip %s, got %+v", tipID, items)
+		}
+	})
+
+	t.Run("empty list is non-nil", func(t *testing.T) {
+		svc := NewTipService(&fakeRepo{}, &fakePlaceGetter{}, &fakeLocationGetter{})
+
+		items, err := svc.ListByPlace(context.Background(), uuid.New())
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if items == nil {
+			t.Fatal("expected non-nil slice")
+		}
+		if len(items) != 0 {
+			t.Fatalf("expected empty slice, got %d", len(items))
+		}
 	})
 }

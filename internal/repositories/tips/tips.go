@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*tip.Tip, error)
+	ListByPlace(ctx context.Context, placeID uuid.UUID) ([]tip.Tip, error)
 	Create(ctx context.Context, input CreateInput) (*tip.Tip, error)
 	Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*tip.Tip, error)
 	Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error
