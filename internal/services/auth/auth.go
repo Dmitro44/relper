@@ -47,8 +47,6 @@ type CreateInput struct {
 	Email    string
 	Password string
 	Nickname string
-	Habits   []string
-	Contacts user.Contacts
 }
 
 func (s *AuthService) Register(ctx context.Context, input CreateInput) (*user.User, *TokenPair, error) {
@@ -70,8 +68,6 @@ func (s *AuthService) Register(ctx context.Context, input CreateInput) (*user.Us
 		Email:        input.Email,
 		PasswordHash: hash,
 		Nickname:     input.Nickname,
-		Habits:       input.Habits,
-		Contacts:     input.Contacts,
 	})
 	if err != nil {
 		return nil, nil, err

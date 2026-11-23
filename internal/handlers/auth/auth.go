@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/Dmitro44/relper/internal/auth"
-	"github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/handlers/httperr"
 	"github.com/Dmitro44/relper/internal/handlers/users"
@@ -75,14 +74,6 @@ func (h *AuthHandler) HandleRegister(ctx context.Context, in *RegisterRequest) (
 		Email:    in.Body.Email,
 		Password: in.Body.Password,
 		Nickname: in.Body.Nickname,
-		Habits:   in.Body.Habits,
-	}
-
-	if in.Body.Contacts != nil {
-		input.Contacts = user.Contacts{
-			Telegram: in.Body.Contacts.Telegram,
-			Email:    in.Body.Contacts.Email,
-		}
 	}
 
 	user, pair, err := h.svc.Register(ctx, input)

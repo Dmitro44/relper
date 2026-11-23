@@ -28,15 +28,11 @@ type CreateInput struct {
 	Email        string
 	PasswordHash []byte
 	Nickname     string
-	Habits       []string
-	Contacts     userentity.Contacts
 }
 
 type UpdateInput struct {
 	Email    *string
 	Nickname *string
-	Habits   *[]string
-	Contacts *userentity.Contacts
 }
 
 func (u *UserService) GetByID(ctx context.Context, id uuid.UUID) (*userentity.User, error) {
@@ -68,8 +64,6 @@ func (u *UserService) Create(ctx context.Context, input CreateInput) (*userentit
 		Email:        userentity.NormalizeEmail(input.Email),
 		PasswordHash: input.PasswordHash,
 		Nickname:     input.Nickname,
-		Habits:       input.Habits,
-		Contacts:     input.Contacts,
 	})
 	if err != nil {
 		return nil, apperr.NewInternalError("failed to create user", err)
@@ -95,8 +89,6 @@ func (u *UserService) Update(ctx context.Context, id, callerID uuid.UUID, input 
 	userEntity, err := u.repo.Update(ctx, id, usersrepo.UpdateInput{
 		Email:    input.Email,
 		Nickname: input.Nickname,
-		Habits:   input.Habits,
-		Contacts: input.Contacts,
 	})
 	if err != nil {
 		if errors.Is(err, usersrepo.ErrNotFound) {

@@ -19,14 +19,10 @@ type CreateInput struct {
 	Email        string
 	PasswordHash []byte
 	Nickname     string
-	Habits       []string
-	Contacts     user.Contacts
 }
 
 type UpdateInput struct {
 	Email        *string
 	PasswordHash *[]byte
 	Nickname     *string
-	Habits       *[]string
-	Contacts     *user.Contacts
 }

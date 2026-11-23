@@ -8,10 +8,8 @@ import (
 type UpdateUserRequest struct {
 	ID   uuid.UUID `path:"id"`
 	Body struct {
-		Email    *string            `json:"email,omitempty" pattern:"^[^@\\s]+@[^@\\s]+$" doc:"User email"`
-		Nickname *string            `json:"nickname,omitempty" minLength:"1" maxLength:"50" doc:"Display name"`
-		Habits   *[]string          `json:"habits,omitempty" doc:"User habits"`
-		Contacts *dto.ContactsInput `json:"contacts,omitempty" doc:"Contact info"`
+		Email    *string `json:"email,omitempty" pattern:"^[^@\\s]+@[^@\\s]+$" doc:"User email"`
+		Nickname *string `json:"nickname,omitempty" minLength:"1" maxLength:"50" doc:"Display name"`
 	}
 }
 

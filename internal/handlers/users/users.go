@@ -32,8 +32,6 @@ func MapUserToDto(u *user.User) *dto.UserResponse {
 		ID:       u.ID,
 		Email:    u.Email,
 		Nickname: u.Nickname,
-		Habits:   u.Habits,
-		Contacts: dto.ContactsOutput(u.Contacts),
 	}
 }
 
@@ -90,18 +88,9 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
 	}
 
-	var contacts *user.Contacts
-	if in.Body.Contacts != nil {
-		contacts = &user.Contacts{
-			Telegram: in.Body.Contacts.Telegram,
-			Email:    in.Body.Contacts.Email,
-		}
-	}
 	updateInput := usersvc.UpdateInput{
 		Email:    in.Body.Email,
 		Nickname: in.Body.Nickname,
-		Habits:   in.Body.Habits,
-		Contacts: contacts,
 	}
 
 	u, err := h.svc.Update(ctx, in.ID, callerID, updateInput)
