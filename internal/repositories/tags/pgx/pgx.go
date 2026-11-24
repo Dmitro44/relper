@@ -28,7 +28,7 @@ func NewTagsRepo(pool *pgxpool.Pool) *Pgx {
 
 func (p *Pgx) GetByID(ctx context.Context, id uuid.UUID) (*tag.Tag, error) {
 	query := `
-select id, name, slug
+select id, name, slug, created_at
 from tags
 where id = $1
 `
