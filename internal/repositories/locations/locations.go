@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*location.Location, error)
+	List(ctx context.Context) ([]location.Location, error)
 	Create(ctx context.Context, input CreateInput) (*location.Location, error)
 	Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*location.Location, error)
 	Delete(ctx context.Context, id uuid.UUID) error

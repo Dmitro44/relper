@@ -113,6 +113,30 @@ where id = $1
 	return &location, nil
 }
 
+func (p *Pgx) List(ctx context.Context) ([]location.Location, error) {
+	query := `
+select id, country, city, latitude, longitude, created_at
+from locations
+order by country, city
+`
+
+	rows, err := p.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items, err := pgx.CollectRows(rows, pgx.RowToStructByName[location.Location])
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		items = make([]location.Location, 0)
+	}
+
+	return items, nil
+}
+
 func (p *Pgx) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `
 delete from locations

@@ -30,6 +30,15 @@ func (h *LocationHandler) Register(public, admin huma.API) {
 		DefaultStatus: http.StatusOK,
 	}, h.HandleGetByID)
 
+	huma.Register(public, huma.Operation{
+		OperationID:   "list-locations",
+		Method:        http.MethodGet,
+		Path:          "/locations",
+		Summary:       "List locations",
+		Tags:          []string{"Locations"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleList)
+
 	huma.Register(admin, huma.Operation{
 		OperationID:   "create-location",
 		Method:        http.MethodPost,
@@ -65,6 +74,15 @@ func (h *LocationHandler) HandleGetByID(ctx context.Context, in *GetLocationRequ
 	}
 
 	return &LocationResponse{Body: loc}, nil
+}
+
+func (h *LocationHandler) HandleList(ctx context.Context, in *ListLocationsRequest) (*LocationsResponse, error) {
+	items, err := h.svc.List(ctx)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &LocationsResponse{Body: toLocationItems(items)}, nil
 }
 
 func (h *LocationHandler) HandleCreate(ctx context.Context, in *CreateLocationRequest) (*LocationResponse, error) {

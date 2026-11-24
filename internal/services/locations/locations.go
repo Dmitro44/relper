@@ -45,6 +45,15 @@ func (l *LocationService) GetByID(ctx context.Context, id uuid.UUID) (*location.
 	return locationEntity, nil
 }
 
+func (l *LocationService) List(ctx context.Context) ([]location.Location, error) {
+	items, err := l.repo.List(ctx)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to list locations", err)
+	}
+
+	return items, nil
+}
+
 func (l *LocationService) Create(ctx context.Context, input CreateInput) (*location.Location, error) {
 	locationEntity, err := l.repo.Create(ctx, locationsrepo.CreateInput{
 		Country:     input.Country,

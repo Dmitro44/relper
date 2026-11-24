@@ -1,6 +1,9 @@
 package locations
 
 import (
+	"time"
+
+	"github.com/Dmitro44/relper/internal/entities/coordinates"
 	"github.com/Dmitro44/relper/internal/entities/location"
 	"github.com/Dmitro44/relper/internal/handlers/dto"
 	"github.com/google/uuid"
@@ -33,4 +36,33 @@ type UpdateLocationRequest struct {
 
 type LocationResponse struct {
 	Body *location.Location
+}
+
+type ListLocationsRequest struct{}
+
+type LocationItem struct {
+	ID          uuid.UUID               `json:"id"`
+	Country     string                  `json:"country"`
+	City        string                  `json:"city"`
+	Coordinates coordinates.Coordinates `json:"coordinates"`
+	CreatedAt   time.Time               `json:"created_at"`
+}
+
+type LocationsResponse struct {
+	Body []LocationItem
+}
+
+func toLocationItems(items []location.Location) []LocationItem {
+	out := make([]LocationItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, LocationItem{
+			ID:          item.ID,
+			Country:     item.Country,
+			City:        item.City,
+			Coordinates: item.Coordinates,
+			CreatedAt:   item.CreatedAt,
+		})
+	}
+
+	return out
 }
