@@ -14,3 +14,11 @@ type Comment struct {
 	Content   string
 	CreatedAt time.Time
 }
+
+type WithAuthor struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Nickname  string
+	Content   string
+	CreatedAt time.Time
+}

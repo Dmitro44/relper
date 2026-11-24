@@ -49,6 +49,58 @@ where id = $1
 	return &comment, nil
 }
 
+func (p *Pgx) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]comment.WithAuthor, error) {
+	query := `
+select c.id, c.user_id, u.nickname, c.content, c.created_at
+from comments c
+join users u on u.id = c.user_id
+where c.place_id = $1
+order by c.created_at asc
+`
+
+	rows, err := p.pool.Query(ctx, query, placeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items, err := pgx.CollectRows(rows, pgx.RowToStructByName[comment.WithAuthor])
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		items = make([]comment.WithAuthor, 0)
+	}
+
+	return items, nil
+}
+
+func (p *Pgx) ListByTip(ctx context.Context, tipID uuid.UUID) ([]comment.WithAuthor, error) {
+	query := `
+select c.id, c.user_id, u.nickname, c.content, c.created_at
+from comments c
+join users u on u.id = c.user_id
+where c.tip_id = $1
+order by c.created_at asc
+`
+
+	rows, err := p.pool.Query(ctx, query, tipID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items, err := pgx.CollectRows(rows, pgx.RowToStructByName[comment.WithAuthor])
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		items = make([]comment.WithAuthor, 0)
+	}
+
+	return items, nil
+}
+
 func (p *Pgx) Create(ctx context.Context, input comments.CreateInput) (*comment.Comment, error) {
 	query := `
 insert into comments(place_id, tip_id, user_id, content)

@@ -42,6 +42,14 @@ func (f *fakeRepo) Delete(ctx context.Context, id, userID uuid.UUID, admin bool)
 	return nil
 }
 
+func (f *fakeRepo) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]comment.WithAuthor, error) {
+	return []comment.WithAuthor{{ID: uuid.New(), Content: "place comment"}}, nil
+}
+
+func (f *fakeRepo) ListByTip(ctx context.Context, tipID uuid.UUID) ([]comment.WithAuthor, error) {
+	return []comment.WithAuthor{{ID: uuid.New(), Content: "tip comment"}}, nil
+}
+
 type fakePlaceGetter struct {
 	err error
 }
@@ -184,6 +192,58 @@ func TestCreate(t *testing.T) {
 		}
 		if repo.created.UserID != userID || repo.created.Content != content {
 			t.Fatalf("unexpected create input: %+v", repo.created)
+		}
+	})
+}
+
+func TestListByPlace(t *testing.T) {
+	t.Run("place not found", func(t *testing.T) {
+		svc := NewCommmentService(
+			&fakeRepo{},
+			&fakePlaceGetter{err: apperr.NewNotFoundError("place not found")},
+			&fakeTipGetter{},
+		)
+
+		_, err := svc.ListByPlace(context.Background(), uuid.New())
+
+		assertErrorCode(t, err, apperr.ErrorCodeNotFound)
+	})
+
+	t.Run("returns comments", func(t *testing.T) {
+		svc := NewCommmentService(&fakeRepo{}, &fakePlaceGetter{}, &fakeTipGetter{})
+
+		items, err := svc.ListByPlace(context.Background(), uuid.New())
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(items) != 1 || items[0].Content != "place comment" {
+			t.Fatalf("unexpected comments: %+v", items)
+		}
+	})
+}
+
+func TestListByTip(t *testing.T) {
+	t.Run("tip not found", func(t *testing.T) {
+		svc := NewCommmentService(
+			&fakeRepo{},
+			&fakePlaceGetter{},
+			&fakeTipGetter{err: apperr.NewNotFoundError("tip not found")},
+		)
+
+		_, err := svc.ListByTip(context.Background(), uuid.New())
+
+		assertErrorCode(t, err, apperr.ErrorCodeNotFound)
+	})
+
+	t.Run("returns comments", func(t *testing.T) {
+		svc := NewCommmentService(&fakeRepo{}, &fakePlaceGetter{}, &fakeTipGetter{})
+
+		items, err := svc.ListByTip(context.Background(), uuid.New())
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(items) != 1 || items[0].Content != "tip comment" {
+			t.Fatalf("unexpected comments: %+v", items)
 		}
 	})
 }

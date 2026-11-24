@@ -58,6 +58,32 @@ func (c *CommentService) GetByID(ctx context.Context, id uuid.UUID) (*comment.Co
 	return commentEntity, nil
 }
 
+func (c *CommentService) ListByPlace(ctx context.Context, placeID uuid.UUID) ([]comment.WithAuthor, error) {
+	if _, err := c.places.GetByID(ctx, placeID); err != nil {
+		return nil, err
+	}
+
+	items, err := c.repo.ListByPlace(ctx, placeID)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to list place comments", err)
+	}
+
+	return items, nil
+}
+
+func (c *CommentService) ListByTip(ctx context.Context, tipID uuid.UUID) ([]comment.WithAuthor, error) {
+	if _, err := c.tips.GetByID(ctx, tipID); err != nil {
+		return nil, err
+	}
+
+	items, err := c.repo.ListByTip(ctx, tipID)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to list tip comments", err)
+	}
+
+	return items, nil
+}
+
 func (c *CommentService) Create(ctx context.Context, input CreateInput) (*comment.Comment, error) {
 	if (input.PlaceID == nil) == (input.TipID == nil) {
 		return nil, apperr.NewBadRequestError("exactly one of place_id or tip_id is required")

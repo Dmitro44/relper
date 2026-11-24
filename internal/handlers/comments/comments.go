@@ -31,6 +31,24 @@ func (h *CommentHandler) Register(public, protected huma.API) {
 		DefaultStatus: http.StatusOK,
 	}, h.HandleGetByID)
 
+	huma.Register(public, huma.Operation{
+		OperationID:   "list-place-comments",
+		Method:        http.MethodGet,
+		Path:          "/places/{id}/comments",
+		Summary:       "List comments for a place",
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleListByPlace)
+
+	huma.Register(public, huma.Operation{
+		OperationID:   "list-tip-comments",
+		Method:        http.MethodGet,
+		Path:          "/tips/{id}/comments",
+		Summary:       "List comments for a tip",
+		Tags:          []string{"Comments"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleListByTip)
+
 	huma.Register(protected, huma.Operation{
 		OperationID:   "create-comment",
 		Method:        http.MethodPost,
@@ -66,6 +84,24 @@ func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentReques
 	}
 
 	return &CommentResponse{Body: u}, nil
+}
+
+func (h *CommentHandler) HandleListByPlace(ctx context.Context, in *ListCommentsRequest) (*CommentsResponse, error) {
+	items, err := h.svc.ListByPlace(ctx, in.ID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &CommentsResponse{Body: toCommentItems(items)}, nil
+}
+
+func (h *CommentHandler) HandleListByTip(ctx context.Context, in *ListCommentsRequest) (*CommentsResponse, error) {
+	items, err := h.svc.ListByTip(ctx, in.ID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &CommentsResponse{Body: toCommentItems(items)}, nil
 }
 
 func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequest) (*CommentResponse, error) {

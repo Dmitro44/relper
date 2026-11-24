@@ -12,6 +12,8 @@ type Repository interface {
 	Create(ctx context.Context, input CreateInput) (*comment.Comment, error)
 	Update(ctx context.Context, id, userID uuid.UUID, admin bool, input UpdateInput) (*comment.Comment, error)
 	Delete(ctx context.Context, id, userID uuid.UUID, admin bool) error
+	ListByPlace(ctx context.Context, placeID uuid.UUID) ([]comment.WithAuthor, error)
+	ListByTip(ctx context.Context, tipID uuid.UUID) ([]comment.WithAuthor, error)
 }
 
 type CreateInput struct {
