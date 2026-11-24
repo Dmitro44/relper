@@ -116,7 +116,12 @@ func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (
 }
 
 func (h *UserHandler) HandleSetRoles(ctx context.Context, in *SetUserRolesRequest) (*UserRolesResponse, error) {
-	roles, err := h.svc.SetRoles(ctx, in.ID, in.Body.Roles)
+	callerID, ok := auth.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+
+	roles, err := h.svc.SetRoles(ctx, in.ID, callerID, in.Body.Roles)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

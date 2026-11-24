@@ -11,6 +11,7 @@ import (
 	"github.com/Dmitro44/relper/internal/handlers"
 	"github.com/Dmitro44/relper/internal/logger"
 	"github.com/Dmitro44/relper/internal/middlewares"
+	auditrepo "github.com/Dmitro44/relper/internal/repositories/audit/pgx"
 	commentsrepo "github.com/Dmitro44/relper/internal/repositories/comments/pgx"
 	likesrepo "github.com/Dmitro44/relper/internal/repositories/likes/pgx"
 	locationsrepo "github.com/Dmitro44/relper/internal/repositories/locations/pgx"
@@ -22,6 +23,7 @@ import (
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips/pgx"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users/pgx"
+	auditsvc "github.com/Dmitro44/relper/internal/services/audit"
 	"github.com/Dmitro44/relper/internal/services/auth"
 	"github.com/Dmitro44/relper/internal/services/comments"
 	"github.com/Dmitro44/relper/internal/services/likes"
@@ -55,8 +57,9 @@ func main() {
 	}
 
 	locationService := locations.NewLocationService(locationsrepo.NewLocationsRepo(pool))
-	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool), rolesrepo.NewRolesRepo(pool))
-	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg)
+	auditService := auditsvc.NewAuditService(auditrepo.NewAuditRepo(pool))
+	userService := userservice.NewUserService(usersrepo.NewUsersRepo(pool), rolesrepo.NewRolesRepo(pool), auditService)
+	authService := auth.NewAuthService(userService, reftokrepo.NewRefreshTokenRepo(pool), cfg, auditService)
 	placeService := places.NewPlaceService(placesrepo.NewPlacesRepo(pool), locationService)
 	tipService := tips.NewTipService(tipsrepo.NewTipsRepo(pool), placeService, locationService)
 	commentService := comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool), placeService, tipService)
@@ -71,6 +74,7 @@ func main() {
 	handlers.Register(api, handlers.Deps{
 		Users:     userService,
 		Auth:      authService,
+		Audit:     auditService,
 		Comments:  commentService,
 		Locations: locationService,
 		Places:    placeService,

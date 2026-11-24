@@ -5,22 +5,26 @@ import (
 	"errors"
 	"log/slog"
 
+	auditentity "github.com/Dmitro44/relper/internal/entities/audit"
 	userentity "github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
 	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles"
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users"
+	auditsvc "github.com/Dmitro44/relper/internal/services/audit"
 	"github.com/google/uuid"
 )
 
 type UserService struct {
 	repo      usersrepo.Repository
 	rolesRepo rolesrepo.Repository
+	audit     *auditsvc.AuditService
 }
 
-func NewUserService(repo usersrepo.Repository, rolesRepo rolesrepo.Repository) *UserService {
+func NewUserService(repo usersrepo.Repository, rolesRepo rolesrepo.Repository, audit *auditsvc.AuditService) *UserService {
 	return &UserService{
 		repo:      repo,
 		rolesRepo: rolesRepo,
+		audit:     audit,
 	}
 }
 
@@ -127,7 +131,7 @@ func (u *UserService) GetRoles(ctx context.Context, id uuid.UUID) ([]string, err
 	return roles, nil
 }
 
-func (u *UserService) SetRoles(ctx context.Context, id uuid.UUID, codes []string) ([]string, error) {
+func (u *UserService) SetRoles(ctx context.Context, id, callerID uuid.UUID, codes []string) ([]string, error) {
 	if _, err := u.repo.GetByID(ctx, id); err != nil {
 		if errors.Is(err, usersrepo.ErrNotFound) {
 			return nil, apperr.NewNotFoundError("user not found")
@@ -145,7 +149,29 @@ func (u *UserService) SetRoles(ctx context.Context, id uuid.UUID, codes []string
 		}
 		return nil, apperr.NewInternalError("failed to set user roles", err)
 	}
+	roles, err := u.GetRoles(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	u.recordAudit(ctx, auditentity.EventInput{
+		Action:     "user.roles_changed",
+		EntityType: "user",
+		EntityID:   &id,
+		ActorID:    &callerID,
+		Details:    map[string]any{"roles": roles},
+	})
 	slog.InfoContext(ctx, "user roles set", "user_id", id, "roles", codes)
 
-	return u.GetRoles(ctx, id)
+	return roles, nil
+}
+
+func (u *UserService) recordAudit(ctx context.Context, event auditentity.EventInput) {
+	if u.audit == nil {
+		return
+	}
+
+	if err := u.audit.Record(ctx, event); err != nil {
+		slog.ErrorContext(ctx, "failed to record audit event", "action", event.Action, "error", err)
+	}
 }

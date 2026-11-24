@@ -2,6 +2,7 @@ package handlers
 
 import (
 	authn "github.com/Dmitro44/relper/internal/auth"
+	audithandler "github.com/Dmitro44/relper/internal/handlers/audit"
 	"github.com/Dmitro44/relper/internal/handlers/auth"
 	"github.com/Dmitro44/relper/internal/handlers/comments"
 	"github.com/Dmitro44/relper/internal/handlers/likes"
@@ -12,6 +13,7 @@ import (
 	"github.com/Dmitro44/relper/internal/handlers/tasks"
 	"github.com/Dmitro44/relper/internal/handlers/tips"
 	"github.com/Dmitro44/relper/internal/handlers/users"
+	auditsvc "github.com/Dmitro44/relper/internal/services/audit"
 	authsvc "github.com/Dmitro44/relper/internal/services/auth"
 	commentsvc "github.com/Dmitro44/relper/internal/services/comments"
 	likessvc "github.com/Dmitro44/relper/internal/services/likes"
@@ -28,6 +30,7 @@ import (
 type Deps struct {
 	Users     *usersvc.UserService
 	Auth      *authsvc.AuthService
+	Audit     *auditsvc.AuditService
 	Comments  *commentsvc.CommentService
 	Locations *locationsvc.LocationService
 	Places    *placesvc.PlaceService
@@ -57,6 +60,7 @@ func Register(api huma.API, d Deps) {
 
 	// auth routes stay on root api and remain public (except /auth/me)
 	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
+	audithandler.NewAuditHandler(d.Audit).Register(admin)
 }
 
 func Config() huma.Config {
@@ -71,6 +75,7 @@ func Config() huma.Config {
 	}
 	config.Tags = []*huma.Tag{
 		{Name: "Auth"},
+		{Name: "Audit"},
 		{Name: "Users"},
 		{Name: "Comments"},
 		{Name: "Locations"},

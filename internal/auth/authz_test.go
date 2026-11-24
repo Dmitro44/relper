@@ -36,7 +36,7 @@ func signToken(t *testing.T, secret string, id uuid.UUID, roles ...string) strin
 
 func TestRequireRole(t *testing.T) {
 	const secret = "0234qwerty3940ytrewq538430"
-	authService := auth.NewAuthService(nil, nil, &config.Config{JWTSecret: secret})
+	authService := auth.NewAuthService(nil, nil, &config.Config{JWTSecret: secret}, nil)
 	app := fiber.New()
 	api := humafiber.New(app, huma.DefaultConfig("test", "1.0"))
 

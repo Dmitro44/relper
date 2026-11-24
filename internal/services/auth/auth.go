@@ -7,12 +7,15 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/Dmitro44/relper/internal/config"
+	auditentity "github.com/Dmitro44/relper/internal/entities/audit"
 	"github.com/Dmitro44/relper/internal/entities/user"
 	apperr "github.com/Dmitro44/relper/internal/errors"
 	"github.com/Dmitro44/relper/internal/repositories/refreshtokens"
+	auditsvc "github.com/Dmitro44/relper/internal/services/audit"
 	"github.com/Dmitro44/relper/internal/services/users"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -33,13 +36,15 @@ type AuthService struct {
 	userservice *users.UserService
 	reftokrepo  refreshtokens.Repository
 	config      *config.Config
+	audit       *auditsvc.AuditService
 }
 
-func NewAuthService(userservice *users.UserService, reftokrepo refreshtokens.Repository, config *config.Config) *AuthService {
+func NewAuthService(userservice *users.UserService, reftokrepo refreshtokens.Repository, config *config.Config, audit *auditsvc.AuditService) *AuthService {
 	return &AuthService{
 		userservice: userservice,
 		reftokrepo:  reftokrepo,
 		config:      config,
+		audit:       audit,
 	}
 }
 
@@ -73,6 +78,13 @@ func (s *AuthService) Register(ctx context.Context, input CreateInput) (*user.Us
 		return nil, nil, err
 	}
 
+	s.recordAudit(ctx, auditentity.EventInput{
+		Action:     "user.registered",
+		EntityType: "user",
+		EntityID:   &user.ID,
+		ActorID:    &user.ID,
+	})
+
 	pair, err := s.generateTokenPair(ctx, user.ID)
 	if err != nil {
 		return nil, nil, err
@@ -96,6 +108,13 @@ func (s *AuthService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, nil, err
 	}
+
+	s.recordAudit(ctx, auditentity.EventInput{
+		Action:     "user.login",
+		EntityType: "user",
+		EntityID:   &user.ID,
+		ActorID:    &user.ID,
+	})
 
 	return user, pair, nil
 }
@@ -231,4 +250,14 @@ func (s *AuthService) generateAccessToken(ctx context.Context, userID uuid.UUID)
 	}
 
 	return access, nil
+}
+
+func (s *AuthService) recordAudit(ctx context.Context, event auditentity.EventInput) {
+	if s.audit == nil {
+		return
+	}
+
+	if err := s.audit.Record(ctx, event); err != nil {
+		slog.ErrorContext(ctx, "failed to record audit event", "action", event.Action, "error", err)
+	}
 }
