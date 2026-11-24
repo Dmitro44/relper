@@ -69,7 +69,7 @@ func (h *TaskHandler) HandleGetByID(ctx context.Context, in *GetTaskRequest) (*T
 		return nil, httperr.Map(err)
 	}
 
-	return &TaskResponse{Body: t}, nil
+	return &TaskResponse{Body: toTaskItem(*t)}, nil
 }
 
 func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (*TaskResponse, error) {
@@ -88,7 +88,7 @@ func (h *TaskHandler) HandleCreate(ctx context.Context, in *CreateTaskRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	return &TaskResponse{Body: t}, nil
+	return &TaskResponse{Body: toTaskItem(*t)}, nil
 }
 
 func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (*TaskResponse, error) {
@@ -106,7 +106,7 @@ func (h *TaskHandler) HandleUpdate(ctx context.Context, in *UpdateTaskRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	return &TaskResponse{Body: t}, nil
+	return &TaskResponse{Body: toTaskItem(*t)}, nil
 }
 
 func (h *TaskHandler) HandleDelete(ctx context.Context, in *DeleteTaskRequest) (*struct{}, error) {

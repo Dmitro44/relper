@@ -88,7 +88,7 @@ func (h *LikeHandler) HandleLikeTip(ctx context.Context, in *LikeTipRequest) (*S
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }
 
 func (h *LikeHandler) HandleUnlikeTip(ctx context.Context, in *UnlikeTipRequest) (*SummaryResponse, error) {
@@ -102,7 +102,7 @@ func (h *LikeHandler) HandleUnlikeTip(ctx context.Context, in *UnlikeTipRequest)
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }
 
 func (h *LikeHandler) HandleGetTipLikes(ctx context.Context, in *GetTipLikesRequest) (*SummaryResponse, error) {
@@ -111,7 +111,7 @@ func (h *LikeHandler) HandleGetTipLikes(ctx context.Context, in *GetTipLikesRequ
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }
 
 func (h *LikeHandler) HandleLikeComment(ctx context.Context, in *LikeCommentRequest) (*SummaryResponse, error) {
@@ -125,7 +125,7 @@ func (h *LikeHandler) HandleLikeComment(ctx context.Context, in *LikeCommentRequ
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }
 
 func (h *LikeHandler) HandleUnlikeComment(ctx context.Context, in *UnlikeCommentRequest) (*SummaryResponse, error) {
@@ -139,7 +139,7 @@ func (h *LikeHandler) HandleUnlikeComment(ctx context.Context, in *UnlikeComment
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }
 
 func (h *LikeHandler) HandleGetCommentLikes(ctx context.Context, in *GetCommentLikesRequest) (*SummaryResponse, error) {
@@ -148,5 +148,5 @@ func (h *LikeHandler) HandleGetCommentLikes(ctx context.Context, in *GetCommentL
 		return nil, httperr.Map(err)
 	}
 
-	return &SummaryResponse{Body: summary}, nil
+	return &SummaryResponse{Body: *summary}, nil
 }

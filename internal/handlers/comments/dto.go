@@ -30,8 +30,28 @@ type UpdateCommentRequest struct {
 	}
 }
 
+type CommentDetail struct {
+	ID        uuid.UUID  `json:"id"`
+	PlaceID   *uuid.UUID `json:"place_id,omitempty"`
+	TipID     *uuid.UUID `json:"tip_id,omitempty"`
+	UserID    uuid.UUID  `json:"user_id"`
+	Content   string     `json:"content"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
 type CommentResponse struct {
-	Body *comment.Comment
+	Body CommentDetail
+}
+
+func toCommentDetail(c comment.Comment) CommentDetail {
+	return CommentDetail{
+		ID:        c.ID,
+		PlaceID:   c.PlaceID,
+		TipID:     c.TipID,
+		UserID:    c.UserID,
+		Content:   c.Content,
+		CreatedAt: c.CreatedAt,
+	}
 }
 
 type ListCommentsRequest struct {

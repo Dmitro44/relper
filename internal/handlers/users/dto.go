@@ -22,7 +22,7 @@ type DeleteUserRequest struct {
 }
 
 type UserResponse struct {
-	Body *dto.UserResponse
+	Body dto.UserResponse
 }
 
 type SetUserRolesRequest struct {

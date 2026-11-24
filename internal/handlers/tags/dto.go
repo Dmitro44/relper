@@ -1,6 +1,8 @@
 package tags
 
 import (
+	"time"
+
 	"github.com/Dmitro44/relper/internal/entities/tag"
 	"github.com/google/uuid"
 )
@@ -28,6 +30,22 @@ type DeleteTagRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type TagItem struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Slug      string    `json:"slug"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type TagResponse struct {
-	Body *tag.Tag
+	Body TagItem
+}
+
+func toTagItem(t tag.Tag) TagItem {
+	return TagItem{
+		ID:        t.ID,
+		Name:      t.Name,
+		Slug:      t.Slug,
+		CreatedAt: t.CreatedAt,
+	}
 }

@@ -52,7 +52,7 @@ func (h *RatingHandler) HandleSet(ctx context.Context, in *SetRatingRequest) (*R
 		return nil, httperr.Map(err)
 	}
 
-	return &RatingResponse{Body: placeRating}, nil
+	return &RatingResponse{Body: toRatingItem(*placeRating)}, nil
 }
 
 func (h *RatingHandler) HandleDelete(ctx context.Context, in *DeleteRatingRequest) (*struct{}, error) {

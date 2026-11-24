@@ -63,7 +63,7 @@ func (h *TagHandler) HandleGetByID(ctx context.Context, in *GetTagRequest) (*Tag
 		return nil, httperr.Map(err)
 	}
 
-	return &TagResponse{Body: t}, nil
+	return &TagResponse{Body: toTagItem(*t)}, nil
 }
 
 func (h *TagHandler) HandleCreate(ctx context.Context, in *CreateTagRequest) (*TagResponse, error) {
@@ -75,7 +75,7 @@ func (h *TagHandler) HandleCreate(ctx context.Context, in *CreateTagRequest) (*T
 		return nil, httperr.Map(err)
 	}
 
-	return &TagResponse{Body: t}, nil
+	return &TagResponse{Body: toTagItem(*t)}, nil
 }
 
 func (h *TagHandler) HandleUpdate(ctx context.Context, in *UpdateTagRequest) (*TagResponse, error) {
@@ -87,7 +87,7 @@ func (h *TagHandler) HandleUpdate(ctx context.Context, in *UpdateTagRequest) (*T
 		return nil, httperr.Map(err)
 	}
 
-	return &TagResponse{Body: t}, nil
+	return &TagResponse{Body: toTagItem(*t)}, nil
 }
 
 func (h *TagHandler) HandleDelete(ctx context.Context, in *DeleteTagRequest) (*struct{}, error) {

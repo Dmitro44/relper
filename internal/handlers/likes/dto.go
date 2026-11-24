@@ -30,5 +30,5 @@ type GetCommentLikesRequest struct {
 }
 
 type SummaryResponse struct {
-	Body *like.LikeSummary
+	Body like.LikeSummary
 }

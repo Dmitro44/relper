@@ -35,7 +35,7 @@ type UpdateLocationRequest struct {
 }
 
 type LocationResponse struct {
-	Body *location.Location
+	Body LocationItem
 }
 
 type ListLocationsRequest struct{}
@@ -52,16 +52,20 @@ type LocationsResponse struct {
 	Body []LocationItem
 }
 
+func toLocationItem(item location.Location) LocationItem {
+	return LocationItem{
+		ID:          item.ID,
+		Country:     item.Country,
+		City:        item.City,
+		Coordinates: item.Coordinates,
+		CreatedAt:   item.CreatedAt,
+	}
+}
+
 func toLocationItems(items []location.Location) []LocationItem {
 	out := make([]LocationItem, 0, len(items))
 	for _, item := range items {
-		out = append(out, LocationItem{
-			ID:          item.ID,
-			Country:     item.Country,
-			City:        item.City,
-			Coordinates: item.Coordinates,
-			CreatedAt:   item.CreatedAt,
-		})
+		out = append(out, toLocationItem(item))
 	}
 
 	return out

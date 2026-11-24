@@ -73,7 +73,7 @@ func (h *PlaceHandler) HandleGetByID(ctx context.Context, in *GetPlaceRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	return &PlaceWithRatingResponse{Body: p}, nil
+	return &PlaceWithRatingResponse{Body: toPlaceWithRatingItem(*p)}, nil
 }
 
 func (h *PlaceHandler) HandleListByLocation(ctx context.Context, in *ListPlacesRequest) (*ListPlacesResponse, error) {
@@ -82,7 +82,7 @@ func (h *PlaceHandler) HandleListByLocation(ctx context.Context, in *ListPlacesR
 		return nil, httperr.Map(err)
 	}
 
-	return &ListPlacesResponse{Body: items}, nil
+	return &ListPlacesResponse{Body: toPlaceWithRatingItems(items)}, nil
 }
 
 func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest) (*PlaceResponse, error) {
@@ -104,7 +104,7 @@ func (h *PlaceHandler) HandleCreate(ctx context.Context, in *CreatePlaceRequest)
 		return nil, httperr.Map(err)
 	}
 
-	return &PlaceResponse{Body: p}, nil
+	return &PlaceResponse{Body: toPlaceItem(*p)}, nil
 }
 
 func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest) (*PlaceResponse, error) {
@@ -129,7 +129,7 @@ func (h *PlaceHandler) HandleUpdate(ctx context.Context, in *UpdatePlaceRequest)
 		return nil, httperr.Map(err)
 	}
 
-	return &PlaceResponse{Body: p}, nil
+	return &PlaceResponse{Body: toPlaceItem(*p)}, nil
 }
 
 func (h *PlaceHandler) HandleDelete(ctx context.Context, in *DeletePlaceRequest) (*struct{}, error) {

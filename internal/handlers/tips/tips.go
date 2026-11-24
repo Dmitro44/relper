@@ -74,7 +74,7 @@ func (h *TipHandler) HandleGetByID(ctx context.Context, in *GetTipRequest) (*Tip
 		return nil, httperr.Map(err)
 	}
 
-	return &TipResponse{Body: t}, nil
+	return &TipResponse{Body: toTipItem(*t)}, nil
 }
 
 func (h *TipHandler) HandleListByPlace(ctx context.Context, in *ListPlaceTipsRequest) (*TipsResponse, error) {
@@ -83,7 +83,7 @@ func (h *TipHandler) HandleListByPlace(ctx context.Context, in *ListPlaceTipsReq
 		return nil, httperr.Map(err)
 	}
 
-	return &TipsResponse{Body: items}, nil
+	return &TipsResponse{Body: toTipItems(items)}, nil
 }
 
 func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*TipResponse, error) {
@@ -103,7 +103,7 @@ func (h *TipHandler) HandleCreate(ctx context.Context, in *CreateTipRequest) (*T
 		return nil, httperr.Map(err)
 	}
 
-	return &TipResponse{Body: t}, nil
+	return &TipResponse{Body: toTipItem(*t)}, nil
 }
 
 func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*TipResponse, error) {
@@ -122,7 +122,7 @@ func (h *TipHandler) HandleUpdate(ctx context.Context, in *UpdateTipRequest) (*T
 		return nil, httperr.Map(err)
 	}
 
-	return &TipResponse{Body: t}, nil
+	return &TipResponse{Body: toTipItem(*t)}, nil
 }
 
 func (h *TipHandler) HandleDelete(ctx context.Context, in *DeleteTipRequest) (*struct{}, error) {

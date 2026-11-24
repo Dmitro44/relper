@@ -79,7 +79,7 @@ func (h *UserHandler) HandleGetByID(ctx context.Context, in *GetUserRequest) (*U
 		return nil, httperr.Map(err)
 	}
 
-	return &UserResponse{Body: MapUserToDto(u)}, nil
+	return &UserResponse{Body: *MapUserToDto(u)}, nil
 }
 
 func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (*UserResponse, error) {
@@ -98,7 +98,7 @@ func (h *UserHandler) HandleUpdate(ctx context.Context, in *UpdateUserRequest) (
 		return nil, httperr.Map(err)
 	}
 
-	return &UserResponse{Body: MapUserToDto(u)}, nil
+	return &UserResponse{Body: *MapUserToDto(u)}, nil
 }
 
 func (h *UserHandler) HandleDelete(ctx context.Context, in *DeleteUserRequest) (*struct{}, error) {

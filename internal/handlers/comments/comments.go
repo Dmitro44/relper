@@ -83,7 +83,7 @@ func (h *CommentHandler) HandleGetByID(ctx context.Context, in *GetCommentReques
 		return nil, httperr.Map(err)
 	}
 
-	return &CommentResponse{Body: u}, nil
+	return &CommentResponse{Body: toCommentDetail(*u)}, nil
 }
 
 func (h *CommentHandler) HandleListByPlace(ctx context.Context, in *ListCommentsRequest) (*CommentsResponse, error) {
@@ -119,7 +119,7 @@ func (h *CommentHandler) HandleCreate(ctx context.Context, in *CreateCommentRequ
 		return nil, httperr.Map(err)
 	}
 
-	return &CommentResponse{Body: u}, nil
+	return &CommentResponse{Body: toCommentDetail(*u)}, nil
 }
 
 func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequest) (*CommentResponse, error) {
@@ -136,7 +136,7 @@ func (h *CommentHandler) HandleUpdate(ctx context.Context, in *UpdateCommentRequ
 		return nil, httperr.Map(err)
 	}
 
-	return &CommentResponse{Body: u}, nil
+	return &CommentResponse{Body: toCommentDetail(*u)}, nil
 }
 
 func (h *CommentHandler) HandleDelete(ctx context.Context, in *DeleteCommentRequest) (*struct{}, error) {

@@ -73,7 +73,7 @@ func (h *LocationHandler) HandleGetByID(ctx context.Context, in *GetLocationRequ
 		return nil, httperr.Map(err)
 	}
 
-	return &LocationResponse{Body: loc}, nil
+	return &LocationResponse{Body: toLocationItem(*loc)}, nil
 }
 
 func (h *LocationHandler) HandleList(ctx context.Context, in *ListLocationsRequest) (*LocationsResponse, error) {
@@ -99,7 +99,7 @@ func (h *LocationHandler) HandleCreate(ctx context.Context, in *CreateLocationRe
 		return nil, httperr.Map(err)
 	}
 
-	return &LocationResponse{Body: loc}, nil
+	return &LocationResponse{Body: toLocationItem(*loc)}, nil
 }
 
 func (h *LocationHandler) HandleUpdate(ctx context.Context, in *UpdateLocationRequest) (*LocationResponse, error) {
@@ -119,7 +119,7 @@ func (h *LocationHandler) HandleUpdate(ctx context.Context, in *UpdateLocationRe
 		return nil, httperr.Map(err)
 	}
 
-	return &LocationResponse{Body: loc}, nil
+	return &LocationResponse{Body: toLocationItem(*loc)}, nil
 }
 
 func (h *LocationHandler) HandleDelete(ctx context.Context, in *DeleteLocationRequest) (*struct{}, error) {
