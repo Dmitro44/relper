@@ -291,7 +291,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get my place rating */
+        get: operations["get-place-rating"];
         /** Set a place rating */
         put: operations["set-place-rating"];
         post?: never;
@@ -701,6 +702,16 @@ export interface components {
              * @example https://example.com/errors/example
              */
             type: string;
+        };
+        GetRatingResponseBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/GetRatingResponseBody.json
+             */
+            readonly $schema?: string;
+            /** Format: int32 */
+            stars?: number;
         };
         LikeSummary: {
             /**
@@ -1759,6 +1770,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommentItem"][] | null;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-place-rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetRatingResponseBody"];
                 };
             };
             /** @description Error */

@@ -13,6 +13,7 @@ const props = defineProps<{
   comments: Comment[]
   tips: Tip[]
   authed: boolean
+  myRating: number | null
   rateAction: (stars: number) => Promise<void>
   commentAction: (content: string) => Promise<void>
 }>()
@@ -38,7 +39,7 @@ const filledStars = computed(() => {
   if (hoveredStar.value) {
     return hoveredStar.value
   }
-  return Math.round(props.place.rating.avg_stars ?? 0)
+  return props.myRating ?? 0
 })
 
 watch(

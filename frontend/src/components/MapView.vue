@@ -27,6 +27,7 @@ const category = ref('')
 const sort = ref<'wilson' | 'avg_stars' | 'votes_count' | 'name'>('wilson')
 const search = ref('')
 const anchor = ref<{ x: number; y: number } | null>(null)
+const myRating = ref<number | null>(null)
 const tipComposerOpen = ref(false)
 const loadingLocations = ref(false)
 const loadingPlaces = ref(false)
@@ -67,6 +68,7 @@ function resetSelection(): void {
   comments.value = []
   tips.value = []
   anchor.value = null
+  myRating.value = null
   tipComposerOpen.value = false
 }
 
@@ -128,10 +130,13 @@ async function loadPlaces(): Promise<void> {
 async function loadPlace(id: string): Promise<void> {
   error.value = ''
 
-  const [placeResult, commentsResult, tipsResult] = await Promise.all([
+  const [placeResult, commentsResult, tipsResult, ratingResult] = await Promise.all([
     api.GET('/places/{id}', { params: { path: { id } } }),
     api.GET('/places/{id}/comments', { params: { path: { id } } }),
     api.GET('/places/{id}/tips', { params: { path: { id } } }),
+    auth.user
+      ? api.GET('/places/{id}/rating', { params: { path: { id } } })
+      : Promise.resolve(null),
   ])
 
   if (selectedPlaceId.value !== id) {
@@ -147,6 +152,7 @@ async function loadPlace(id: string): Promise<void> {
   place.value = placeResult.data
   comments.value = commentsResult.data ?? []
   tips.value = tipsResult.data ?? []
+  myRating.value = ratingResult?.data?.stars ?? null
 }
 
 async function selectPlace(id: string): Promise<void> {
@@ -158,6 +164,7 @@ async function selectPlace(id: string): Promise<void> {
   place.value = null
   comments.value = []
   tips.value = []
+  myRating.value = null
   tipComposerOpen.value = false
   await loadPlace(id)
 }
@@ -176,6 +183,7 @@ async function rate(stars: number): Promise<void> {
     throw new Error(errorMessage(requestError))
   }
 
+  myRating.value = stars
   await Promise.all([loadPlace(id), loadPlaces()])
 }
 
@@ -372,6 +380,7 @@ onMounted(loadLocations)
         :comments="comments"
         :tips="tips"
         :authed="!!auth.user"
+        :my-rating="myRating"
         :rate-action="rate"
         :comment-action="addComment"
         @add-tip="tipComposerOpen = true"

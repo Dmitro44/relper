@@ -55,3 +55,12 @@ func (s *RatingService) Remove(ctx context.Context, userID, placeID uuid.UUID) e
 
 	return nil
 }
+
+func (s *RatingService) Get(ctx context.Context, userID, placeID uuid.UUID) (*rating.PlaceRating, error) {
+	placeRating, err := s.repo.Get(ctx, userID, placeID)
+	if err != nil {
+		return nil, apperr.NewInternalError("failed to get place rating", err)
+	}
+
+	return placeRating, nil
+}

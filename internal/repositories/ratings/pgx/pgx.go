@@ -2,6 +2,7 @@ package pgx
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Dmitro44/relper/internal/entities/rating"
 	"github.com/Dmitro44/relper/internal/repositories/ratings"
@@ -37,6 +38,29 @@ returning id, user_id, place_id, stars, created_at, updated_at;
 	}
 
 	r, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[rating.PlaceRating])
+	if err != nil {
+		return nil, err
+	}
+
+	return &r, nil
+}
+
+func (p *Pgx) Get(ctx context.Context, userID, placeID uuid.UUID) (*rating.PlaceRating, error) {
+	query := `
+select id, user_id, place_id, stars, created_at, updated_at
+from place_ratings
+where user_id = $1 and place_id = $2;
+`
+
+	rows, err := p.pool.Query(ctx, query, userID, placeID)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[rating.PlaceRating])
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

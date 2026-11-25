@@ -18,6 +18,16 @@ type DeleteRatingRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type GetRatingRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type GetRatingResponse struct {
+	Body struct {
+		Stars *int16 `json:"stars,omitempty"`
+	}
+}
+
 type RatingItem struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`

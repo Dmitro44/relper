@@ -32,6 +32,15 @@ func (h *RatingHandler) Register(public, protected huma.API) {
 	}, h.HandleSet)
 
 	huma.Register(protected, huma.Operation{
+		OperationID:   "get-place-rating",
+		Method:        http.MethodGet,
+		Path:          "/places/{id}/rating",
+		Summary:       "Get my place rating",
+		Tags:          []string{"Ratings"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGet)
+
+	huma.Register(protected, huma.Operation{
 		OperationID:   "delete-place-rating",
 		Method:        http.MethodDelete,
 		Path:          "/places/{id}/rating",
@@ -39,6 +48,26 @@ func (h *RatingHandler) Register(public, protected huma.API) {
 		Tags:          []string{"Ratings"},
 		DefaultStatus: http.StatusNoContent,
 	}, h.HandleDelete)
+}
+
+func (h *RatingHandler) HandleGet(ctx context.Context, in *GetRatingRequest) (*GetRatingResponse, error) {
+	userID, ok := auth.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+
+	placeRating, err := h.svc.Get(ctx, userID, in.ID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	response := &GetRatingResponse{}
+	if placeRating != nil {
+		stars := placeRating.Stars
+		response.Body.Stars = &stars
+	}
+
+	return response, nil
 }
 
 func (h *RatingHandler) HandleSet(ctx context.Context, in *SetRatingRequest) (*RatingResponse, error) {
