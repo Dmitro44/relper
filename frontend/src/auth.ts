@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { api } from './api/client'
 import { errorMessage } from './api/error'
+import { refreshAccessToken } from './api/refresh'
 import { getToken, setToken } from './api/token'
 import type { Me } from './types'
 
@@ -31,17 +32,22 @@ export async function loadMe(): Promise<void> {
 
   pendingLoad = (async () => {
     if (!getToken()) {
-      auth.user = null
-      auth.ready = true
-      return
+      const token = await refreshAccessToken()
+      if (!token) {
+        auth.user = null
+        auth.ready = true
+        return
+      }
     }
 
     const { data, error } = await api.GET('/auth/me')
     if (error || !data) {
       setToken('')
       auth.user = null
-      auth.error = errorMessage(error)
       auth.ready = true
+      if (!auth.error) {
+        auth.error = errorMessage(error)
+      }
       return
     }
 
@@ -98,6 +104,7 @@ export async function register(email: string, password: string, nickname: string
 }
 
 export function logout(): void {
+  void api.POST('/auth/logout').catch(() => undefined)
   setToken('')
   auth.user = null
   auth.error = ''

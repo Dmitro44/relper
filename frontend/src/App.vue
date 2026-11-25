@@ -41,13 +41,22 @@ function signOut(): void {
   go('map')
 }
 
+function onAuthExpired(): void {
+  auth.user = null
+  auth.ready = true
+  auth.error = 'Сессия истекла. Войдите снова.'
+  go('login')
+}
+
 onMounted(() => {
   window.addEventListener('popstate', onPopState)
+  window.addEventListener('relper:auth-expired', onAuthExpired)
   void loadMe()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('popstate', onPopState)
+  window.removeEventListener('relper:auth-expired', onAuthExpired)
 })
 
 watch(
