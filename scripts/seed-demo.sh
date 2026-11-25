@@ -118,6 +118,18 @@ tip() {
     -d "$payload" >/dev/null
 }
 
+comment_for() {
+  case "$1" in
+    food) printf '%s' "Вкусно, порции нормальные." ;;
+    hobby) printf '%s' "Интересное место, стоит зайти." ;;
+    shopping) printf '%s' "Выбор большой, можно найти нужное." ;;
+    transport) printf '%s' "В час пик шумно, зато перебираться удобно." ;;
+    healthcare) printf '%s' "Приняли по записи, всё организовано." ;;
+    services) printf '%s' "Быстро помогли с вопросом." ;;
+    *) printf '%s' "Хорошее место." ;;
+  esac
+}
+
 TOKEN_DEMO="$(ensure_token "$DEMO_EMAIL" "Демо")"
 TOKEN_ANNA="$(ensure_token "anna@relper.local" "Анна")"
 TOKEN_MAKS="$(ensure_token "maks@relper.local" "Макс")"
@@ -143,22 +155,14 @@ while IFS='|' read -r name category address lat lng description tip_category tip
   place_id="$(create_place "$MINSK" "$name" "$category" "$address" "$lat" "$lng" "$description")"
   place_ids+=("$place_id")
   tip "$place_id" "$TOKEN_DEMO" "$tip_category" "$tip_title" "$tip_content"
+  comment "$place_id" "$TOKEN_ANNA" "$(comment_for "$category")"
 done < "$PLACES_FILE"
-
-comments=(
-  "Отличное место, вернусь ещё."
-  "Удобно добираться, рядом всё нужное."
-  "Спокойно и без лишнего шума."
-  "Хороший вариант для первого знакомства с районом."
-  "Персонал помог разобраться с деталями."
-)
 
 for i in "${!place_ids[@]}"; do
   place_id="${place_ids[$i]}"
   rate "$place_id" "$TOKEN_ANNA" "$((5 - (i % 2)))"
   rate "$place_id" "$TOKEN_MAKS" "4"
   rate "$place_id" "$TOKEN_LENA" "$((3 + (i % 3)))"
-  comment "$place_id" "$TOKEN_ANNA" "${comments[$((i % ${#comments[@]}))]}"
 done
 
 
