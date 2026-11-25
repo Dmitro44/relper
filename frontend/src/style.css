@@ -439,6 +439,55 @@ h3 {
   gap: 12px;
 }
 
+.popup-add {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.place-popup.has-composer {
+  top: auto;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: calc(100vh - 32px);
+}
+
+.place-popup.has-composer .place-popup-card {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(480px, 52vh);
+}
+
+.tip-composer {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(420px, 50vh);
+  overflow: hidden;
+}
+
+.tip-composer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tip-composer-head h3 {
+  font-size: 1rem;
+}
+
+.tip-composer-form {
+  min-height: 0;
+  margin-top: 0;
+  padding: 12px 14px 14px;
+  overflow: auto;
+}
+
 .place-description {
   font-size: 0.92rem;
   line-height: 1.55;
@@ -1061,6 +1110,19 @@ textarea::placeholder {
 
   .place-popup-card {
     max-height: 40dvh;
+  }
+
+  .place-popup.has-composer {
+    bottom: calc(44dvh + var(--sidebar-gap) * 2);
+    max-height: calc(100dvh - 44dvh - var(--sidebar-gap) * 3);
+  }
+
+  .place-popup.has-composer .place-popup-card {
+    max-height: 23dvh;
+  }
+
+  .place-popup.has-composer .tip-composer {
+    max-height: 23dvh;
   }
 
   .map-error {

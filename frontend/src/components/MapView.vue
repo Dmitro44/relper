@@ -8,6 +8,7 @@ import type { Comment, Location, Place, Tip, TipInput } from '../types'
 import MapCanvas from './MapCanvas.vue'
 import PlacePopup from './PlacePopup.vue'
 import ThemeToggle from './ThemeToggle.vue'
+import TipComposer from './TipComposer.vue'
 
 const emit = defineEmits<{
   login: []
@@ -26,6 +27,7 @@ const category = ref('')
 const sort = ref<'wilson' | 'avg_stars' | 'votes_count' | 'name'>('wilson')
 const search = ref('')
 const anchor = ref<{ x: number; y: number } | null>(null)
+const tipComposerOpen = ref(false)
 const loadingLocations = ref(false)
 const loadingPlaces = ref(false)
 const error = ref('')
@@ -65,6 +67,7 @@ function resetSelection(): void {
   comments.value = []
   tips.value = []
   anchor.value = null
+  tipComposerOpen.value = false
 }
 
 function closePlace(): void {
@@ -155,6 +158,7 @@ async function selectPlace(id: string): Promise<void> {
   place.value = null
   comments.value = []
   tips.value = []
+  tipComposerOpen.value = false
   await loadPlace(id)
 }
 
@@ -357,7 +361,12 @@ onMounted(loadLocations)
       <button type="button" class="btn ghost small" @click="retry">Повторить</button>
     </div>
 
-    <div v-if="place && anchor" class="place-popup" :style="popupStyle">
+    <div
+      v-if="place && anchor"
+      class="place-popup"
+      :class="{ 'has-composer': tipComposerOpen }"
+      :style="popupStyle"
+    >
       <PlacePopup
         :place="place"
         :comments="comments"
@@ -365,9 +374,16 @@ onMounted(loadLocations)
         :authed="!!auth.user"
         :rate-action="rate"
         :comment-action="addComment"
-        :tip-action="addTip"
+        @add-tip="tipComposerOpen = true"
+        @tab-change="tipComposerOpen = false"
         @close="closePlace"
         @login="emit('login')"
+      />
+      <TipComposer
+        v-if="tipComposerOpen"
+        :tip-action="addTip"
+        @close="tipComposerOpen = false"
+        @created="tipComposerOpen = false"
       />
     </div>
   </section>

@@ -4,10 +4,9 @@ import {
   formatDate,
   label,
   placeCategoryLabels,
-  tipCategories,
   tipCategoryLabels,
 } from '../labels'
-import type { Comment, Place, Tip, TipInput } from '../types'
+import type { Comment, Place, Tip } from '../types'
 
 const props = defineProps<{
   place: Place
@@ -16,15 +15,16 @@ const props = defineProps<{
   authed: boolean
   rateAction: (stars: number) => Promise<void>
   commentAction: (content: string) => Promise<void>
-  tipAction: (payload: TipInput) => Promise<void>
 }>()
+
+type Tab = 'main' | 'tips' | 'reviews'
 
 const emit = defineEmits<{
   close: []
   login: []
+  'add-tip': []
+  'tab-change': [tab: Tab]
 }>()
-
-type Tab = 'main' | 'tips' | 'reviews'
 
 const activeTab = ref<Tab>('main')
 const hoveredStar = ref(0)
@@ -33,11 +33,6 @@ const ratingError = ref('')
 const commentText = ref('')
 const commentBusy = ref(false)
 const commentError = ref('')
-const tipTitle = ref('')
-const tipCategory = ref('daily_life')
-const tipContent = ref('')
-const tipBusy = ref(false)
-const tipError = ref('')
 
 const filledStars = computed(() => {
   if (hoveredStar.value) {
@@ -52,6 +47,14 @@ watch(
     activeTab.value = 'main'
   },
 )
+
+function selectTab(tab: Tab): void {
+  if (activeTab.value === tab) {
+    return
+  }
+  activeTab.value = tab
+  emit('tab-change', tab)
+}
 
 function votesLabel(count: number): string {
   const mod10 = count % 10
@@ -99,27 +102,6 @@ async function submitComment(): Promise<void> {
     commentBusy.value = false
   }
 }
-
-async function submitTip(): Promise<void> {
-  const title = tipTitle.value.trim()
-  const content = tipContent.value.trim()
-  if (!title || !content) {
-    tipError.value = 'Заполните заголовок и текст совета'
-    return
-  }
-
-  tipBusy.value = true
-  tipError.value = ''
-  try {
-    await props.tipAction({ title, content, category: tipCategory.value })
-    tipTitle.value = ''
-    tipContent.value = ''
-  } catch (error) {
-    tipError.value = error instanceof Error ? error.message : 'Не удалось отправить совет'
-  } finally {
-    tipBusy.value = false
-  }
-}
 </script>
 
 <template>
@@ -153,7 +135,7 @@ async function submitTip(): Promise<void> {
         :class="{ active: activeTab === 'main' }"
         :aria-selected="activeTab === 'main'"
         aria-controls="panel-main"
-        @click="activeTab = 'main'"
+        @click="selectTab('main')"
       >
         Основное
       </button>
@@ -165,7 +147,7 @@ async function submitTip(): Promise<void> {
         :class="{ active: activeTab === 'tips' }"
         :aria-selected="activeTab === 'tips'"
         aria-controls="panel-tips"
-        @click="activeTab = 'tips'"
+        @click="selectTab('tips')"
       >
         Советы <span class="count">{{ tips.length }}</span>
       </button>
@@ -177,7 +159,7 @@ async function submitTip(): Promise<void> {
         :class="{ active: activeTab === 'reviews' }"
         :aria-selected="activeTab === 'reviews'"
         aria-controls="panel-reviews"
-        @click="activeTab = 'reviews'"
+        @click="selectTab('reviews')"
       >
         Отзывы <span class="count">{{ comments.length }}</span>
       </button>
@@ -252,33 +234,9 @@ async function submitTip(): Promise<void> {
           </li>
         </ul>
 
-        <form v-if="authed" class="inline-form" @submit.prevent="submitTip">
-          <label class="field">
-            <span>Заголовок</span>
-            <input v-model="tipTitle" maxlength="200" placeholder="Коротко о совете" />
-          </label>
-          <label class="field">
-            <span>Категория</span>
-            <select v-model="tipCategory">
-              <option v-for="item in tipCategories" :key="item" :value="item">
-                {{ label(tipCategoryLabels, item) }}
-              </option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Текст совета</span>
-            <textarea
-              v-model="tipContent"
-              rows="3"
-              maxlength="4000"
-              placeholder="Что поможет другому человеку?"
-            ></textarea>
-          </label>
-          <button class="btn primary" type="submit" :disabled="tipBusy">
-            {{ tipBusy ? 'Отправка…' : 'Добавить совет' }}
-          </button>
-          <p v-if="tipError" class="form-error" role="alert">{{ tipError }}</p>
-        </form>
+        <button v-if="authed" type="button" class="btn primary popup-add" @click="emit('add-tip')">
+          Добавить совет
+        </button>
         <p v-else class="login-hint">
           Войдите, чтобы добавить совет.
           <button type="button" class="link" @click="emit('login')">Войти</button>
