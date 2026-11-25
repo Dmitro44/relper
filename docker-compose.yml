@@ -1,4 +1,3 @@
-version: "3"
 services:
   postgres:
     image: postgres:18.1
@@ -11,6 +10,26 @@ services:
       POSTGRES_DB: relper
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relper -d relper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://relper:relper@postgres:5432/relper?sslmode=disable
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

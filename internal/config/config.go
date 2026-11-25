@@ -1,27 +1,27 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL string `env:"DATABASE_URL"`
+	DatabaseURL string `env:"DATABASE_URL,required"`
 	AppEnv      string `env:"APP_ENV" envDefault:"development"`
-	JWTSecret   string `env:"JWT_SECRET"`
+	JWTSecret   string `env:"JWT_SECRET,required"`
 }
 
 func Load() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}
 
 	config := new(Config)
-	err = env.Parse(config)
-	if err != nil {
+	if err := env.Parse(config); err != nil {
 		return nil, err
 	}
 
