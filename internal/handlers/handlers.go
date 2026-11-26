@@ -9,6 +9,7 @@ import (
 	"github.com/Dmitro44/relper/internal/handlers/locations"
 	"github.com/Dmitro44/relper/internal/handlers/places"
 	"github.com/Dmitro44/relper/internal/handlers/ratings"
+	"github.com/Dmitro44/relper/internal/handlers/suggestions"
 	"github.com/Dmitro44/relper/internal/handlers/tags"
 	"github.com/Dmitro44/relper/internal/handlers/tasks"
 	"github.com/Dmitro44/relper/internal/handlers/tips"
@@ -20,6 +21,7 @@ import (
 	locationsvc "github.com/Dmitro44/relper/internal/services/locations"
 	placesvc "github.com/Dmitro44/relper/internal/services/places"
 	ratingsvc "github.com/Dmitro44/relper/internal/services/ratings"
+	suggestionsvc "github.com/Dmitro44/relper/internal/services/suggestions"
 	tagsvc "github.com/Dmitro44/relper/internal/services/tags"
 	tasksvc "github.com/Dmitro44/relper/internal/services/tasks"
 	tipsvc "github.com/Dmitro44/relper/internal/services/tips"
@@ -28,17 +30,18 @@ import (
 )
 
 type Deps struct {
-	Users     *usersvc.UserService
-	Auth      *authsvc.AuthService
-	Audit     *auditsvc.AuditService
-	Comments  *commentsvc.CommentService
-	Locations *locationsvc.LocationService
-	Places    *placesvc.PlaceService
-	Tags      *tagsvc.TagService
-	Tasks     *tasksvc.TaskService
-	Tips      *tipsvc.TipService
-	Ratings   *ratingsvc.RatingService
-	Likes     *likessvc.LikeService
+	Users       *usersvc.UserService
+	Auth        *authsvc.AuthService
+	Audit       *auditsvc.AuditService
+	Comments    *commentsvc.CommentService
+	Locations   *locationsvc.LocationService
+	Places      *placesvc.PlaceService
+	Tags        *tagsvc.TagService
+	Tasks       *tasksvc.TaskService
+	Tips        *tipsvc.TipService
+	Ratings     *ratingsvc.RatingService
+	Likes       *likessvc.LikeService
+	Suggestions *suggestionsvc.SuggestionService
 }
 
 func Register(api huma.API, d Deps) {
@@ -57,6 +60,7 @@ func Register(api huma.API, d Deps) {
 	tasks.NewTaskHandler(d.Tasks).Register(protected)
 	tips.NewTipHandler(d.Tips).Register(api, protected)
 	likes.NewLikeHandler(d.Likes).Register(api, protected)
+	suggestions.NewSuggestionHandler(d.Suggestions).Register(protected, admin)
 
 	// auth routes stay on root api and remain public (except /auth/me)
 	auth.NewAuthHandler(d.Auth, d.Users).Register(api, protected)
@@ -85,6 +89,7 @@ func Config() huma.Config {
 		{Name: "Tags"},
 		{Name: "Tasks"},
 		{Name: "Tips"},
+		{Name: "Suggestions"},
 	}
 
 	return config

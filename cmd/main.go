@@ -19,6 +19,7 @@ import (
 	ratingsrepo "github.com/Dmitro44/relper/internal/repositories/ratings/pgx"
 	reftokrepo "github.com/Dmitro44/relper/internal/repositories/refreshtokens/pgx"
 	rolesrepo "github.com/Dmitro44/relper/internal/repositories/roles/pgx"
+	suggestionsrepo "github.com/Dmitro44/relper/internal/repositories/suggestions/pgx"
 	tagsrepo "github.com/Dmitro44/relper/internal/repositories/tags/pgx"
 	tasksrepo "github.com/Dmitro44/relper/internal/repositories/tasks/pgx"
 	tipsrepo "github.com/Dmitro44/relper/internal/repositories/tips/pgx"
@@ -30,6 +31,7 @@ import (
 	"github.com/Dmitro44/relper/internal/services/locations"
 	"github.com/Dmitro44/relper/internal/services/places"
 	"github.com/Dmitro44/relper/internal/services/ratings"
+	suggestionsvc "github.com/Dmitro44/relper/internal/services/suggestions"
 	"github.com/Dmitro44/relper/internal/services/tags"
 	"github.com/Dmitro44/relper/internal/services/tasks"
 	"github.com/Dmitro44/relper/internal/services/tips"
@@ -65,6 +67,7 @@ func main() {
 	commentService := comments.NewCommmentService(commentsrepo.NewCommentsRepo(pool), placeService, tipService)
 	ratingService := ratings.NewRatingService(ratingsrepo.NewRatingsRepo(pool), placeService)
 	likeService := likes.NewLikeService(likesrepo.NewLikesRepo(pool), tipService, commentService)
+	suggestionService := suggestionsvc.NewSuggestionService(suggestionsrepo.NewSuggestionsRepo(pool), locationService)
 
 	app := fiber.New()
 	app.Use(middlewares.RequestLogger())
@@ -72,17 +75,18 @@ func main() {
 	api := humafiber.New(app, handlers.Config())
 
 	handlers.Register(api, handlers.Deps{
-		Users:     userService,
-		Auth:      authService,
-		Audit:     auditService,
-		Comments:  commentService,
-		Locations: locationService,
-		Places:    placeService,
-		Tags:      tags.NewTagService(tagsrepo.NewTagsRepo(pool)),
-		Tasks:     tasks.NewTaskService(tasksrepo.NewTasksRepo(pool)),
-		Tips:      tipService,
-		Ratings:   ratingService,
-		Likes:     likeService,
+		Users:       userService,
+		Auth:        authService,
+		Audit:       auditService,
+		Comments:    commentService,
+		Locations:   locationService,
+		Places:      placeService,
+		Tags:        tags.NewTagService(tagsrepo.NewTagsRepo(pool)),
+		Tasks:       tasks.NewTaskService(tasksrepo.NewTasksRepo(pool)),
+		Tips:        tipService,
+		Ratings:     ratingService,
+		Likes:       likeService,
+		Suggestions: suggestionService,
 	})
 
 	log.Fatal(app.Listen(":3000"))
