@@ -12,6 +12,7 @@ import (
 	usersrepo "github.com/Dmitro44/relper/internal/repositories/users"
 	auditsvc "github.com/Dmitro44/relper/internal/services/audit"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserService struct {
@@ -98,8 +99,22 @@ func (u *UserService) Update(ctx context.Context, id, callerID uuid.UUID, input 
 		if errors.Is(err, usersrepo.ErrNotFound) {
 			return nil, apperr.NewNotFoundError("user not found")
 		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, apperr.NewConflictError("email or nickname is already taken")
+		}
 		return nil, apperr.NewInternalError("failed to update user", err)
 	}
+	u.recordAudit(ctx, auditentity.EventInput{
+		Action:     "user.updated",
+		EntityType: "user",
+		EntityID:   &id,
+		ActorID:    &callerID,
+		Details: map[string]any{
+			"email":    userEntity.Email,
+			"nickname": userEntity.Nickname,
+		},
+	})
 	slog.InfoContext(ctx, "user updated", "user_id", userEntity.ID)
 
 	return userEntity, nil

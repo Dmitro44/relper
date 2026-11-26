@@ -4,9 +4,10 @@ import { auth, isAdmin, loadMe, logout } from './auth'
 import AuditView from './components/AuditView.vue'
 import LoginView from './components/LoginView.vue'
 import MapView from './components/MapView.vue'
+import ProfileView from './components/ProfileView.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
 
-type View = 'map' | 'login' | 'audit'
+type View = 'map' | 'login' | 'audit' | 'profile'
 
 function viewFromPath(path: string): View {
   if (path === '/login' || path === '/login/') {
@@ -14,6 +15,9 @@ function viewFromPath(path: string): View {
   }
   if (path === '/audit' || path === '/audit/') {
     return 'audit'
+  }
+  if (path === '/profile' || path === '/profile/') {
+    return 'profile'
   }
   return 'map'
 }
@@ -68,6 +72,9 @@ watch(
     if (view.value === 'audit' && auth.ready && !isAdmin()) {
       go('map')
     }
+    if (view.value === 'profile' && auth.ready && !auth.user) {
+      go('login')
+    }
   },
 )
 </script>
@@ -92,5 +99,7 @@ watch(
     <AuditView />
   </section>
 
-  <MapView v-else @login="go('login')" @audit="go('audit')" @logout="signOut" />
+  <ProfileView v-else-if="view === 'profile' && auth.user" @back="go('map')" />
+
+  <MapView v-else @login="go('login')" @audit="go('audit')" @profile="go('profile')" @logout="signOut" />
 </template>

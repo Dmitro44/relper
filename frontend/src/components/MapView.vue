@@ -14,6 +14,7 @@ const emit = defineEmits<{
   login: []
   logout: []
   audit: []
+  profile: []
 }>()
 
 const locations = ref<Location[]>([])
@@ -353,6 +354,7 @@ onMounted(loadLocations)
           <div class="sidebar-session">
             <template v-if="auth.user">
               <span class="session-name">{{ auth.user.nickname }}</span>
+              <button type="button" class="link" @click="emit('profile')">Профиль</button>
               <button type="button" class="link" @click="emit('logout')">Выйти</button>
             </template>
             <button v-else type="button" class="btn small" @click="emit('login')">Войти</button>
