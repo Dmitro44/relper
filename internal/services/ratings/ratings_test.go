@@ -38,6 +38,10 @@ func (f *fakeRepo) Delete(ctx context.Context, userID, placeID uuid.UUID) error 
 	return f.deleteErr
 }
 
+func (f *fakeRepo) Get(ctx context.Context, userID, placeID uuid.UUID) (*rating.PlaceRating, error) {
+	return &rating.PlaceRating{UserID: userID, PlaceID: placeID, Stars: 4}, nil
+}
+
 type fakePlaceGetter struct {
 	err error
 }

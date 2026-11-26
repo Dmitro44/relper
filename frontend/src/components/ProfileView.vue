@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { api } from '../api/client'
 import { errorMessage } from '../api/error'
 import { auth } from '../auth'
+import { formatDate } from '../labels'
+import type { Suggestion } from '../types'
 import ThemeToggle from './ThemeToggle.vue'
 
 const emit = defineEmits<{
@@ -14,6 +16,25 @@ const email = ref(auth.user?.email ?? '')
 const busy = ref(false)
 const error = ref('')
 const saved = ref(false)
+const suggestions = ref<Suggestion[]>([])
+const suggestionsError = ref('')
+
+const statusLabels: Record<string, string> = {
+  pending: 'На проверке',
+  approved: 'Одобрено',
+  rejected: 'Отклонено',
+}
+
+async function loadSuggestions(): Promise<void> {
+  const { data, error: requestError } = await api.GET('/place-suggestions/mine')
+  if (requestError || !data) {
+    suggestionsError.value = errorMessage(requestError)
+    return
+  }
+  suggestions.value = data
+}
+
+onMounted(loadSuggestions)
 
 async function save(): Promise<void> {
   if (!auth.user) {
@@ -97,6 +118,30 @@ async function save(): Promise<void> {
         <p v-if="error" class="form-error" role="alert">{{ error }}</p>
         <p v-if="saved" class="form-success" role="status">Профиль сохранён.</p>
       </form>
+    </section>
+
+    <section class="panel profile-suggestions">
+      <header class="auth-head">
+        <h2>Мои предложения</h2>
+        <p class="muted">Места, которые вы отправили на проверку.</p>
+      </header>
+
+      <p v-if="suggestionsError" class="form-error" role="alert">{{ suggestionsError }}</p>
+      <p v-else-if="!suggestions.length" class="muted">Пока нет предложений.</p>
+      <ul v-else class="suggestion-list compact">
+        <li v-for="item in suggestions" :key="item.id" class="suggestion-mini">
+          <div class="suggestion-mini-head">
+            <strong>{{ item.name }}</strong>
+            <span class="badge" :class="`status-${item.status}`">
+              {{ statusLabels[item.status] ?? item.status }}
+            </span>
+          </div>
+          <p class="muted">{{ formatDate(item.created_at) }}</p>
+          <p v-if="item.rejection_reason" class="form-error">
+            {{ item.rejection_reason }}
+          </p>
+        </li>
+      </ul>
     </section>
   </section>
 </template>

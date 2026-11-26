@@ -10,11 +10,12 @@ const props = defineProps<{
   places: Place[]
   selectedId: string | null
   center: { lat: number; lng: number }
+  picking: boolean
 }>()
 
 const emit = defineEmits<{
   select: [id: string]
-  close: []
+  'map-click': [point: { lat: number; lng: number }]
   anchor: [point: { x: number; y: number } | null]
 }>()
 
@@ -53,6 +54,10 @@ function renderMarkers(): void {
     element.setAttribute('aria-label', place.name)
     element.addEventListener('click', (event) => {
       event.stopPropagation()
+      if (props.picking) {
+        emit('map-click', { lat: place.coordinates.lat, lng: place.coordinates.lng })
+        return
+      }
       emit('select', place.id)
     })
 
@@ -109,7 +114,7 @@ onMounted(() => {
   map.on('move', emitAnchor)
   map.on('zoom', emitAnchor)
   map.on('resize', emitAnchor)
-  map.on('click', () => emit('close'))
+  map.on('click', (event) => emit('map-click', { lat: event.lngLat.lat, lng: event.lngLat.lng }))
 
   renderMarkers()
   requestAnimationFrame(() => map?.resize())
