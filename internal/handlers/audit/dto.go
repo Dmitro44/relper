@@ -11,7 +11,7 @@ type ListAuditRequest struct {
 	Action     string    `query:"action"`
 	EntityType string    `query:"entity_type"`
 	ActorID    uuid.UUID `query:"actor_id"`
-	Limit      int       `query:"limit" default:"50" minimum:"1" maximum:"200"`
+	Limit      int       `query:"limit" default:"500" minimum:"1" maximum:"500"`
 }
 
 type AuditItem struct {

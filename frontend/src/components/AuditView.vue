@@ -8,7 +8,7 @@ import type { AuditEvent } from '../types'
 const events = ref<AuditEvent[]>([])
 const source = ref('')
 const action = ref('')
-const limit = ref(50)
+const limit = ref(500)
 const loading = ref(false)
 const error = ref('')
 
@@ -78,6 +78,7 @@ onMounted(load)
           <option :value="50">50</option>
           <option :value="100">100</option>
           <option :value="200">200</option>
+          <option :value="500">500</option>
         </select>
       </label>
 

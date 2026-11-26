@@ -44,10 +44,10 @@ func (s *AuditService) Record(ctx context.Context, input auditentity.EventInput)
 
 func (s *AuditService) List(ctx context.Context, filter auditentity.Filter) ([]auditentity.Event, error) {
 	if filter.Limit <= 0 {
-		filter.Limit = 50
+		filter.Limit = 500
 	}
-	if filter.Limit > 200 {
-		filter.Limit = 200
+	if filter.Limit > 500 {
+		filter.Limit = 500
 	}
 
 	items, err := s.repo.List(ctx, filter)
