@@ -4,16 +4,18 @@ import { api } from '../api/client'
 import { errorMessage } from '../api/error'
 import { auth, isAdmin } from '../auth'
 import { label, placeCategories, placeCategoryLabels } from '../labels'
-import type { Comment, LikeSummary, Location, Place, Tip, TipInput } from '../types'
+import type { Comment, LikeSummary, Location, Place, SuggestionInput, Tip, TipInput } from '../types'
+import AccountMenu from './AccountMenu.vue'
 import MapCanvas from './MapCanvas.vue'
 import PlacePopup from './PlacePopup.vue'
-import ThemeToggle from './ThemeToggle.vue'
+import SuggestPlaceForm from './SuggestPlaceForm.vue'
 import TipComposer from './TipComposer.vue'
 
 const emit = defineEmits<{
   login: []
   logout: []
   audit: []
+  suggestions: []
   profile: []
 }>()
 
@@ -32,6 +34,9 @@ const myRating = ref<number | null>(null)
 const tipLikes = ref<Record<string, LikeSummary>>({})
 const commentLikes = ref<Record<string, LikeSummary>>({})
 const tipComposerOpen = ref(false)
+const suggestionOpen = ref(false)
+const suggestionPicking = ref(false)
+const suggestionPoint = ref<{ lat: number; lng: number } | null>(null)
 const loadingLocations = ref(false)
 const loadingPlaces = ref(false)
 const error = ref('')
@@ -298,6 +303,53 @@ async function addTip(payload: TipInput): Promise<void> {
   await loadPlace(id)
 }
 
+function openSuggestion(): void {
+  if (!auth.user) {
+    emit('login')
+    return
+  }
+  resetSelection()
+  suggestionOpen.value = false
+  suggestionPicking.value = true
+  suggestionPoint.value = null
+}
+
+function cancelSuggestion(): void {
+  suggestionOpen.value = false
+  suggestionPicking.value = false
+  suggestionPoint.value = null
+}
+
+function handleMapClick(point: { lat: number; lng: number }): void {
+  if (suggestionPicking.value) {
+    suggestionPoint.value = point
+    suggestionPicking.value = false
+    suggestionOpen.value = true
+    return
+  }
+  closePlace()
+}
+
+async function submitSuggestion(payload: SuggestionInput): Promise<void> {
+  if (!selectedLocation.value) {
+    throw new Error('Сначала выберите локацию')
+  }
+
+  const { error: requestError } = await api.POST('/place-suggestions', {
+    body: {
+      location_id: selectedLocation.value.id,
+      name: payload.name,
+      category: payload.category,
+      address: payload.address,
+      description: payload.description,
+      coordinates: payload.coordinates,
+    },
+  })
+  if (requestError) {
+    throw new Error(errorMessage(requestError))
+  }
+}
+
 async function retry(): Promise<void> {
   if (!locations.value.length) {
     await loadLocations()
@@ -310,6 +362,7 @@ async function retry(): Promise<void> {
 
 watch(selectedLocationId, async () => {
   resetSelection()
+  cancelSuggestion()
   await loadPlaces()
 })
 
@@ -329,14 +382,15 @@ onMounted(loadLocations)
 </script>
 
 <template>
-  <section class="map-page">
+  <section class="map-page" :class="{ 'is-picking': suggestionPicking }">
     <MapCanvas
       :places="filteredPlaces"
       :selected-id="selectedPlaceId"
       :center="center"
+      :picking="suggestionPicking"
       @select="selectPlace"
       @anchor="setAnchor"
-      @close="closePlace"
+      @map-click="handleMapClick"
     />
 
     <aside class="map-sidebar" aria-label="Поиск мест">
@@ -346,18 +400,6 @@ onMounted(loadLocations)
           <div>
             <h1>Relper</h1>
             <span>Карта переезда</span>
-          </div>
-        </div>
-
-        <div class="sidebar-actions">
-          <ThemeToggle />
-          <div class="sidebar-session">
-            <template v-if="auth.user">
-              <span class="session-name">{{ auth.user.nickname }}</span>
-              <button type="button" class="link" @click="emit('profile')">Профиль</button>
-              <button type="button" class="link" @click="emit('logout')">Выйти</button>
-            </template>
-            <button v-else type="button" class="btn small" @click="emit('login')">Войти</button>
           </div>
         </div>
       </div>
@@ -410,6 +452,10 @@ onMounted(loadLocations)
         </span>
       </div>
 
+      <button type="button" class="btn ghost small sidebar-suggest" @click="openSuggestion">
+        Предложить место
+      </button>
+
       <div v-if="loadingLocations || loadingPlaces" class="state">Загрузка мест…</div>
       <div v-else-if="!locations.length" class="state">Пока нет локаций.</div>
       <div v-else-if="!filteredPlaces.length" class="state">
@@ -438,11 +484,37 @@ onMounted(loadLocations)
 
       <div class="sidebar-foot">
         <span class="muted">{{ selectedLocation?.city ?? 'Минск' }}</span>
-        <button v-if="isAdmin()" type="button" class="link" @click="emit('audit')">
-          Аудит
-        </button>
+        <span class="sidebar-links">
+          <button v-if="isAdmin()" type="button" class="link" @click="emit('suggestions')">
+            Заявки
+          </button>
+          <button v-if="isAdmin()" type="button" class="link" @click="emit('audit')">
+            Аудит
+          </button>
+        </span>
       </div>
     </aside>
+
+    <AccountMenu
+      :authed="!!auth.user"
+      :nickname="auth.user?.nickname ?? ''"
+      @login="emit('login')"
+      @profile="emit('profile')"
+      @logout="emit('logout')"
+    />
+
+    <div v-if="suggestionPicking" class="banner map-pick-hint" role="status">
+      <span>Нажмите на карту, чтобы выбрать место.</span>
+      <button type="button" class="link" @click="cancelSuggestion">Отмена</button>
+    </div>
+
+    <SuggestPlaceForm
+      v-if="suggestionOpen && selectedLocation && auth.user && suggestionPoint"
+      :location="selectedLocation"
+      :coordinates="suggestionPoint"
+      :action="submitSuggestion"
+      @close="cancelSuggestion"
+    />
 
     <div v-if="error" class="banner error map-error" role="alert">
       <span>{{ error }}</span>

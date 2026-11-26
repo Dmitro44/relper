@@ -248,6 +248,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/place-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List place suggestions for review */
+        get: operations["list-place-suggestions"];
+        put?: never;
+        /** Suggest a new place */
+        post: operations["create-place-suggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-suggestions/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the current user's place suggestions */
+        get: operations["list-my-place-suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-suggestions/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Approve a place suggestion */
+        patch: operations["approve-place-suggestion"];
+        trace?: never;
+    };
+    "/place-suggestions/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reject a place suggestion */
+        patch: operations["reject-place-suggestion"];
+        trace?: never;
+    };
     "/places": {
         parameters: {
             query?: never;
@@ -655,6 +724,22 @@ export interface components {
             phone?: string;
             website_url?: string;
         };
+        CreateSuggestionRequestBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/CreateSuggestionRequestBody.json
+             */
+            readonly $schema?: string;
+            address?: string;
+            category: string;
+            coordinates: components["schemas"]["CoordinatesInput"];
+            description?: string;
+            location_id: string;
+            name: string;
+            phone?: string;
+            website_url?: string;
+        };
         CreateTagRequestBody: {
             /**
              * Format: uri
@@ -866,6 +951,15 @@ export interface components {
             /** @description User password */
             password: string;
         };
+        RejectSuggestionRequestBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/RejectSuggestionRequestBody.json
+             */
+            readonly $schema?: string;
+            reason: string;
+        };
         SetRatingRequestBody: {
             /**
              * Format: uri
@@ -885,6 +979,33 @@ export interface components {
             readonly $schema?: string;
             /** @description Role codes to assign (replaces existing) */
             roles: string[] | null;
+        };
+        SuggestionItem: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/SuggestionItem.json
+             */
+            readonly $schema?: string;
+            address: string;
+            category: string;
+            coordinates: components["schemas"]["Coordinates"];
+            /** Format: date-time */
+            created_at: string;
+            description: string;
+            id: string;
+            location_id: string;
+            name: string;
+            nickname: string;
+            phone: string;
+            place_id?: string;
+            rejection_reason?: string;
+            /** Format: date-time */
+            reviewed_at?: string;
+            reviewed_by?: string;
+            status: string;
+            user_id: string;
+            website_url: string;
         };
         Summary: {
             /** Format: double */
@@ -1676,6 +1797,165 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaceWithRatingItem"][] | null;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-place-suggestions": {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionItem"][] | null;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "create-place-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSuggestionRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionItem"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-my-place-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionItem"][] | null;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "approve-place-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionItem"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "reject-place-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectSuggestionRequestBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionItem"];
                 };
             };
             /** @description Error */

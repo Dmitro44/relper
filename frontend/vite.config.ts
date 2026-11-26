@@ -11,6 +11,7 @@ export default defineConfig({
       '/users': apiTarget,
       '/locations': apiTarget,
       '/places': apiTarget,
+      '/place-suggestions': apiTarget,
       '/tips': apiTarget,
       '/comments': apiTarget,
       '/tags': apiTarget,

@@ -5,9 +5,10 @@ import AuditView from './components/AuditView.vue'
 import LoginView from './components/LoginView.vue'
 import MapView from './components/MapView.vue'
 import ProfileView from './components/ProfileView.vue'
+import SuggestionsView from './components/SuggestionsView.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
 
-type View = 'map' | 'login' | 'audit' | 'profile'
+type View = 'map' | 'login' | 'audit' | 'profile' | 'suggestions'
 
 function viewFromPath(path: string): View {
   if (path === '/login' || path === '/login/') {
@@ -18,6 +19,9 @@ function viewFromPath(path: string): View {
   }
   if (path === '/profile' || path === '/profile/') {
     return 'profile'
+  }
+  if (path === '/suggestions' || path === '/suggestions/') {
+    return 'suggestions'
   }
   return 'map'
 }
@@ -72,6 +76,9 @@ watch(
     if (view.value === 'audit' && auth.ready && !isAdmin()) {
       go('map')
     }
+    if (view.value === 'suggestions' && auth.ready && !isAdmin()) {
+      go('map')
+    }
     if (view.value === 'profile' && auth.ready && !auth.user) {
       go('login')
     }
@@ -101,5 +108,29 @@ watch(
 
   <ProfileView v-else-if="view === 'profile' && auth.user" @back="go('map')" />
 
-  <MapView v-else @login="go('login')" @audit="go('audit')" @profile="go('profile')" @logout="signOut" />
+  <section v-else-if="view === 'suggestions' && isAdmin()" class="audit-page">
+    <header class="page-bar">
+      <button type="button" class="brand brand-button" @click="go('map')">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <span>
+          <strong>Relper</strong>
+          <small>Карта переезда</small>
+        </span>
+      </button>
+      <div class="page-actions">
+        <ThemeToggle />
+        <button type="button" class="btn ghost small" @click="go('map')">На карту</button>
+      </div>
+    </header>
+    <SuggestionsView />
+  </section>
+
+  <MapView
+    v-else
+    @login="go('login')"
+    @audit="go('audit')"
+    @suggestions="go('suggestions')"
+    @profile="go('profile')"
+    @logout="signOut"
+  />
 </template>
