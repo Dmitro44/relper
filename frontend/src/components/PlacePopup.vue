@@ -274,7 +274,11 @@ async function toggleCommentLike(comment: Comment): Promise<void> {
       >
         <p v-if="!tips.length" class="muted">Пока нет советов.</p>
         <ul v-else class="tip-list">
-          <li v-for="tip in tips" :key="tip.id">
+          <li
+            v-for="tip in tips"
+            :key="tip.id"
+            :class="{ 'is-own': viewerId === tip.user_id }"
+          >
             <div class="tip-head">
               <strong>{{ tip.title }}</strong>
               <span class="badge">{{ label(tipCategoryLabels, tip.category) }}</span>

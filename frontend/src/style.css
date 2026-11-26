@@ -918,6 +918,17 @@ textarea::placeholder {
   gap: 3px;
 }
 
+.tip-list li {
+  padding: 4px 0 4px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 0 8px 8px 0;
+}
+
+.tip-list li.is-own {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
 .comment-head,
 .tip-head {
   display: flex;
