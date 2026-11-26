@@ -939,6 +939,43 @@ textarea::placeholder {
   font-size: 0.88rem;
 }
 
+.like-row {
+  margin-top: 2px;
+}
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.like-btn:hover {
+  background: var(--surface-2);
+}
+
+.like-btn.active {
+  color: var(--star);
+}
+
+.like-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.like-btn span {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

@@ -50,6 +50,15 @@ func (h *LikeHandler) Register(public, protected huma.API) {
 	}, h.HandleGetTipLikes)
 
 	huma.Register(protected, huma.Operation{
+		OperationID:   "get-my-tip-likes",
+		Method:        http.MethodGet,
+		Path:          "/tips/{id}/likes/me",
+		Summary:       "Get the current user's tip like state",
+		Tags:          []string{"Likes"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetMyTipLikes)
+
+	huma.Register(protected, huma.Operation{
 		OperationID:   "like-comment",
 		Method:        http.MethodPut,
 		Path:          "/comments/{id}/like",
@@ -66,6 +75,15 @@ func (h *LikeHandler) Register(public, protected huma.API) {
 		Tags:          []string{"Likes"},
 		DefaultStatus: http.StatusOK,
 	}, h.HandleUnlikeComment)
+
+	huma.Register(protected, huma.Operation{
+		OperationID:   "get-my-comment-likes",
+		Method:        http.MethodGet,
+		Path:          "/comments/{id}/likes/me",
+		Summary:       "Get the current user's comment like state",
+		Tags:          []string{"Likes"},
+		DefaultStatus: http.StatusOK,
+	}, h.HandleGetMyCommentLikes)
 
 	huma.Register(public, huma.Operation{
 		OperationID:   "get-comment-likes",
@@ -114,6 +132,20 @@ func (h *LikeHandler) HandleGetTipLikes(ctx context.Context, in *GetTipLikesRequ
 	return &SummaryResponse{Body: *summary}, nil
 }
 
+func (h *LikeHandler) HandleGetMyTipLikes(ctx context.Context, in *GetMyTipLikesRequest) (*SummaryResponse, error) {
+	userID, ok := auth.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+
+	summary, err := h.svc.TipSummary(ctx, in.ID, &userID)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &SummaryResponse{Body: *summary}, nil
+}
+
 func (h *LikeHandler) HandleLikeComment(ctx context.Context, in *LikeCommentRequest) (*SummaryResponse, error) {
 	userID, ok := auth.UserID(ctx)
 	if !ok {
@@ -144,6 +176,20 @@ func (h *LikeHandler) HandleUnlikeComment(ctx context.Context, in *UnlikeComment
 
 func (h *LikeHandler) HandleGetCommentLikes(ctx context.Context, in *GetCommentLikesRequest) (*SummaryResponse, error) {
 	summary, err := h.svc.CommentSummary(ctx, in.ID, nil)
+	if err != nil {
+		return nil, httperr.Map(err)
+	}
+
+	return &SummaryResponse{Body: *summary}, nil
+}
+
+func (h *LikeHandler) HandleGetMyCommentLikes(ctx context.Context, in *GetMyCommentLikesRequest) (*SummaryResponse, error) {
+	userID, ok := auth.UserID(ctx)
+	if !ok {
+		return nil, httperr.Map(errors.NewUnauthorizedError("invalid user id from context"))
+	}
+
+	summary, err := h.svc.CommentSummary(ctx, in.ID, &userID)
 	if err != nil {
 		return nil, httperr.Map(err)
 	}

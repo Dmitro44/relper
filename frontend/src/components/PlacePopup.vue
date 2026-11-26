@@ -6,7 +6,7 @@ import {
   placeCategoryLabels,
   tipCategoryLabels,
 } from '../labels'
-import type { Comment, Place, Tip } from '../types'
+import type { Comment, LikeSummary, Place, Tip } from '../types'
 
 const props = defineProps<{
   place: Place
@@ -16,6 +16,11 @@ const props = defineProps<{
   myRating: number | null
   rateAction: (stars: number) => Promise<void>
   commentAction: (content: string) => Promise<void>
+  tipLikes: Record<string, LikeSummary>
+  commentLikes: Record<string, LikeSummary>
+  viewerId: string | null
+  likeTipAction: (id: string, liked: boolean) => Promise<void>
+  likeCommentAction: (id: string, liked: boolean) => Promise<void>
 }>()
 
 type Tab = 'main' | 'tips' | 'reviews'
@@ -34,6 +39,8 @@ const ratingError = ref('')
 const commentText = ref('')
 const commentBusy = ref(false)
 const commentError = ref('')
+const likeBusy = ref<Record<string, boolean>>({})
+const likeError = ref('')
 
 const filledStars = computed(() => {
   if (hoveredStar.value) {
@@ -54,6 +61,7 @@ function selectTab(tab: Tab): void {
     return
   }
   activeTab.value = tab
+  likeError.value = ''
   emit('tab-change', tab)
 }
 
@@ -101,6 +109,46 @@ async function submitComment(): Promise<void> {
     commentError.value = error instanceof Error ? error.message : 'Не удалось отправить отзыв'
   } finally {
     commentBusy.value = false
+  }
+}
+
+async function toggleTipLike(tip: Tip): Promise<void> {
+  if (!props.authed) {
+    emit('login')
+    return
+  }
+  if (props.viewerId === tip.user_id || likeBusy.value[tip.id]) {
+    return
+  }
+
+  likeBusy.value = { ...likeBusy.value, [tip.id]: true }
+  likeError.value = ''
+  try {
+    await props.likeTipAction(tip.id, !!props.tipLikes[tip.id]?.my_like)
+  } catch (error) {
+    likeError.value = error instanceof Error ? error.message : 'Не удалось поставить лайк'
+  } finally {
+    likeBusy.value = { ...likeBusy.value, [tip.id]: false }
+  }
+}
+
+async function toggleCommentLike(comment: Comment): Promise<void> {
+  if (!props.authed) {
+    emit('login')
+    return
+  }
+  if (props.viewerId === comment.user_id || likeBusy.value[comment.id]) {
+    return
+  }
+
+  likeBusy.value = { ...likeBusy.value, [comment.id]: true }
+  likeError.value = ''
+  try {
+    await props.likeCommentAction(comment.id, !!props.commentLikes[comment.id]?.my_like)
+  } catch (error) {
+    likeError.value = error instanceof Error ? error.message : 'Не удалось поставить лайк'
+  } finally {
+    likeBusy.value = { ...likeBusy.value, [comment.id]: false }
   }
 }
 </script>
@@ -232,8 +280,23 @@ async function submitComment(): Promise<void> {
               <span class="badge">{{ label(tipCategoryLabels, tip.category) }}</span>
             </div>
             <p>{{ tip.content }}</p>
+            <div class="like-row">
+              <button
+                type="button"
+                class="like-btn"
+                :class="{ active: tipLikes[tip.id]?.my_like }"
+                :disabled="viewerId === tip.user_id || likeBusy[tip.id]"
+                :aria-pressed="!!tipLikes[tip.id]?.my_like"
+                :title="viewerId === tip.user_id ? 'Нельзя лайкнуть свой совет' : authed ? 'Поставить лайк' : 'Войдите, чтобы поставить лайк'"
+                @click="toggleTipLike(tip)"
+              >
+                <span aria-hidden="true">♥</span>
+                {{ tipLikes[tip.id]?.count ?? 0 }}
+              </button>
+            </div>
           </li>
         </ul>
+        <p v-if="likeError" class="form-error" role="alert">{{ likeError }}</p>
 
         <button v-if="authed" type="button" class="btn primary popup-add" @click="emit('add-tip')">
           Добавить совет
@@ -259,8 +322,23 @@ async function submitComment(): Promise<void> {
               <time :datetime="comment.created_at">{{ formatDate(comment.created_at) }}</time>
             </div>
             <p>{{ comment.content }}</p>
+            <div class="like-row">
+              <button
+                type="button"
+                class="like-btn"
+                :class="{ active: commentLikes[comment.id]?.my_like }"
+                :disabled="viewerId === comment.user_id || likeBusy[comment.id]"
+                :aria-pressed="!!commentLikes[comment.id]?.my_like"
+                :title="viewerId === comment.user_id ? 'Нельзя лайкнуть свой отзыв' : authed ? 'Поставить лайк' : 'Войдите, чтобы поставить лайк'"
+                @click="toggleCommentLike(comment)"
+              >
+                <span aria-hidden="true">♥</span>
+                {{ commentLikes[comment.id]?.count ?? 0 }}
+              </button>
+            </div>
           </li>
         </ul>
+        <p v-if="likeError" class="form-error" role="alert">{{ likeError }}</p>
 
         <form v-if="authed" class="inline-form" @submit.prevent="submitComment">
           <label class="field">

@@ -4,7 +4,7 @@ import { api } from '../api/client'
 import { errorMessage } from '../api/error'
 import { auth, isAdmin } from '../auth'
 import { label, placeCategories, placeCategoryLabels } from '../labels'
-import type { Comment, Location, Place, Tip, TipInput } from '../types'
+import type { Comment, LikeSummary, Location, Place, Tip, TipInput } from '../types'
 import MapCanvas from './MapCanvas.vue'
 import PlacePopup from './PlacePopup.vue'
 import ThemeToggle from './ThemeToggle.vue'
@@ -28,6 +28,8 @@ const sort = ref<'wilson' | 'avg_stars' | 'votes_count' | 'name'>('wilson')
 const search = ref('')
 const anchor = ref<{ x: number; y: number } | null>(null)
 const myRating = ref<number | null>(null)
+const tipLikes = ref<Record<string, LikeSummary>>({})
+const commentLikes = ref<Record<string, LikeSummary>>({})
 const tipComposerOpen = ref(false)
 const loadingLocations = ref(false)
 const loadingPlaces = ref(false)
@@ -69,6 +71,8 @@ function resetSelection(): void {
   tips.value = []
   anchor.value = null
   myRating.value = null
+  tipLikes.value = {}
+  commentLikes.value = {}
   tipComposerOpen.value = false
 }
 
@@ -153,6 +157,16 @@ async function loadPlace(id: string): Promise<void> {
   comments.value = commentsResult.data ?? []
   tips.value = tipsResult.data ?? []
   myRating.value = ratingResult?.data?.stars ?? null
+
+  const [nextTipLikes, nextCommentLikes] = await Promise.all([
+    loadTipLikes(tips.value.map((item) => item.id)),
+    loadCommentLikes(comments.value.map((item) => item.id)),
+  ])
+  if (selectedPlaceId.value !== id) {
+    return
+  }
+  tipLikes.value = nextTipLikes
+  commentLikes.value = nextCommentLikes
 }
 
 async function selectPlace(id: string): Promise<void> {
@@ -165,8 +179,72 @@ async function selectPlace(id: string): Promise<void> {
   comments.value = []
   tips.value = []
   myRating.value = null
+  tipLikes.value = {}
+  commentLikes.value = {}
   tipComposerOpen.value = false
   await loadPlace(id)
+}
+
+async function loadTipLikes(ids: string[]): Promise<Record<string, LikeSummary>> {
+  const entries = await Promise.all(
+    ids.map(async (id) => {
+      const result = auth.user
+        ? await api.GET('/tips/{id}/likes/me', { params: { path: { id } } })
+        : await api.GET('/tips/{id}/likes', { params: { path: { id } } })
+      return result.data ? ([id, result.data] as const) : null
+    }),
+  )
+
+  const result: Record<string, LikeSummary> = {}
+  for (const entry of entries) {
+    if (entry) {
+      result[entry[0]] = entry[1]
+    }
+  }
+  return result
+}
+
+async function loadCommentLikes(ids: string[]): Promise<Record<string, LikeSummary>> {
+  const entries = await Promise.all(
+    ids.map(async (id) => {
+      const result = auth.user
+        ? await api.GET('/comments/{id}/likes/me', { params: { path: { id } } })
+        : await api.GET('/comments/{id}/likes', { params: { path: { id } } })
+      return result.data ? ([id, result.data] as const) : null
+    }),
+  )
+
+  const result: Record<string, LikeSummary> = {}
+  for (const entry of entries) {
+    if (entry) {
+      result[entry[0]] = entry[1]
+    }
+  }
+  return result
+}
+
+async function likeTip(id: string, liked: boolean): Promise<void> {
+  const { data, error: requestError } = liked
+    ? await api.DELETE('/tips/{id}/like', { params: { path: { id } } })
+    : await api.PUT('/tips/{id}/like', { params: { path: { id } } })
+  if (requestError) {
+    throw new Error(errorMessage(requestError))
+  }
+  if (data) {
+    tipLikes.value = { ...tipLikes.value, [id]: data }
+  }
+}
+
+async function likeComment(id: string, liked: boolean): Promise<void> {
+  const { data, error: requestError } = liked
+    ? await api.DELETE('/comments/{id}/like', { params: { path: { id } } })
+    : await api.PUT('/comments/{id}/like', { params: { path: { id } } })
+  if (requestError) {
+    throw new Error(errorMessage(requestError))
+  }
+  if (data) {
+    commentLikes.value = { ...commentLikes.value, [id]: data }
+  }
 }
 
 async function rate(stars: number): Promise<void> {
@@ -383,6 +461,11 @@ onMounted(loadLocations)
         :my-rating="myRating"
         :rate-action="rate"
         :comment-action="addComment"
+        :tip-likes="tipLikes"
+        :comment-likes="commentLikes"
+        :viewer-id="auth.user?.id ?? null"
+        :like-tip-action="likeTip"
+        :like-comment-action="likeComment"
         @add-tip="tipComposerOpen = true"
         @tab-change="tipComposerOpen = false"
         @close="closePlace"

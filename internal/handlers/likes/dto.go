@@ -17,6 +17,10 @@ type GetTipLikesRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type GetMyTipLikesRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
 type LikeCommentRequest struct {
 	ID uuid.UUID `path:"id"`
 }
@@ -26,6 +30,10 @@ type UnlikeCommentRequest struct {
 }
 
 type GetCommentLikesRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type GetMyCommentLikesRequest struct {
 	ID uuid.UUID `path:"id"`
 }
 
